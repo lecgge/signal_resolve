@@ -230,8 +230,22 @@ cmake --build build --config Release
 - 完善的错误处理：语法错误时返回 `false`
 - MSVC `/utf-8` 编译选项
 
+## 验证结果
+
+三层架构已通过端到端验证：
+
+| 层级 | 测试数 | 结果 |
+|------|--------|------|
+| C++ Codec Engine | 8 | 8 PASS |
+| Python (pybind11) | 24 | 24 PASS |
+| Java (JNA) | 9 | 9 PASS |
+
+验证覆盖：
+- Intel/Motorola 字节序的跨字节位提取与打包
+- 线性变换（factor/offset）的编码-解码往返
+- 多路复用（MUX）路由逻辑
+- 边界值（60-bit offset、零长度信号）
+
 ## 后续规划
 
-- Layer 3: pybind11 Python 桥接
-- Layer 4: JNA Java 桥接
-- Layer 5: 实时信号监控与异常检测
+- Layer 4: 实时信号监控与异常检测
