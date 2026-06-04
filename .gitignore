@@ -2,6 +2,8 @@
 build/
 out/
 cmake-build-*/
+java/build/
+*.jar
 
 # IDE
 .vs/

@@ -11,7 +11,6 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>          // automatic vector <-> list
-#include <pybind11/stl_bind.h>     // opaque binding for vector
 #include <filesystem>
 
 namespace py = pybind11;

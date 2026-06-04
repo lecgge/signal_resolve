@@ -18,7 +18,7 @@ for s in info["signals"]:
           f"{s['byte_order']}, factor={s['factor']}, offset={s['offset']}")
 
 # 3. Decode — one line
-raw = bytes([0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+raw = list(bytes([0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
 decoded = net.decode_frame(frame_id, raw)
 print(f"\nDecode frame 0x{frame_id:X}:")
 for sig in decoded:
@@ -26,4 +26,4 @@ for sig in decoded:
 
 # 4. Encode round-trip
 encoded = net.encode_frame(frame_id, {"AMPWorkSta": 1.0})
-print(f"\nEncode frame 0x{frame_id:X}: {encoded.hex(' ').upper()}")
+print(f"\nEncode frame 0x{frame_id:X}: {' '.join(f'{b:02X}' for b in encoded)}")
