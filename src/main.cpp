@@ -391,6 +391,33 @@ int main() {
     TestEncodeRoundTrip();
     TestBoundaryConditions();
 
+    // ── Diagnostic: 64-bit Motorola decode ──────────────────────────────
+    {
+        std::cout << "--- Diagnostic: 64-bit Motorola (bit=7, len=64) ---\n";
+
+        // Test PackBits directly for VKR=1
+        uint8_t enc_buf[8] = {};
+        usde::CodecEngine::PackBits(enc_buf, 8, 7, 64,
+                                     usde::ByteOrder::MOTOROLA, 1);
+        HexDump("PackBits VKR=1", enc_buf, 8);
+
+        uint64_t raw = usde::CodecEngine::ExtractBits(
+            enc_buf, 8, 7, 64, usde::ByteOrder::MOTOROLA);
+        std::cout << "  ExtractBits from packed: " << raw << " (expected 1)\n";
+
+        // Test PackBits for VKR=9223372036854775808
+        uint8_t enc_buf2[8] = {};
+        usde::CodecEngine::PackBits(enc_buf2, 8, 7, 64,
+                                     usde::ByteOrder::MOTOROLA,
+                                     9223372036854775808ULL);
+        HexDump("PackBits VKR=max", enc_buf2, 8);
+
+        uint64_t raw2 = usde::CodecEngine::ExtractBits(
+            enc_buf2, 8, 7, 64, usde::ByteOrder::MOTOROLA);
+        std::cout << "  ExtractBits from max packed: " << raw2
+                  << " (expected 9223372036854775808)\n";
+    }
+
     std::cout << "========================================\n";
     std::cout << " All tests completed.\n";
     std::cout << "========================================\n";

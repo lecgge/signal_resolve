@@ -5,6 +5,16 @@ cmake-build-*/
 java/build/
 *.jar
 
+# Debug/test scripts (not part of the library)
+python/check*.py
+python/debug_*.py
+python/diag*.py
+python/find_*.py
+python/gen_*.py
+python/verify_*.py
+python/test_algo.py
+python/run_*.py
+
 # IDE
 .vs/
 .vscode/

@@ -590,10 +590,10 @@ BO_ 1134 IPK_CFCAN_FrP05 : 8 ICM
  SG_ SIAOdoPriy : 47|24@0+ (1.0,0.0) [0.0|16777200.0] "km" Vector_XXX
 
 BO_ 1345 IPK_CFCAN_FrP06 : 8 ICM
- SG_ CalendarDay : 20|5@0+ (1.0,0.0) [0.0|31.0] "days" Vector_XXX
- SG_ CalendarMonth : 15|4@0+ (1,0) [0|15] "" Vector_XXX
- SG_ CalendarYear : 31|8@0+ (1.0,2000.0) [2000.0|2255.0] "year" Vector_XXX
- SG_ HourOfDay : 52|5@0+ (1.0,0.0) [0.0|23.0] "" Vector_XXX
+ SG_ CalendarDay : 0|5@1+ (1.0,0.0) [0.0|31.0] "days" Vector_XXX
+ SG_ CalendarMonth : 5|4@1+ (1,0) [0|15] "" Vector_XXX
+ SG_ CalendarYear : 9|7@1+ (1.0,0.0) [0.0|127.0] "year" Vector_XXX
+ SG_ HourOfDay : 16|5@1+ (1.0,0.0) [0.0|31.0] "" Vector_XXX
  SG_ IPK_200ms_PDU06_CRC : 7|8@0+ (1.0,0.0) [0.0|255.0] "" Vector_XXX
  SG_ IPK_200ms_PDU06_RC : 11|4@0+ (1.0,0.0) [0.0|15.0] "" Vector_XXX
  SG_ IPK_200ms_PDU06_Reserve01 : 63|8@0+ (1,0) [0|255] "" Vector_XXX
@@ -601,8 +601,8 @@ BO_ 1345 IPK_CFCAN_FrP06 : 8 ICM
  SG_ IPK_200ms_PDU06_Reserve03 : 55|3@0+ (1,0) [0|7] "" Vector_XXX
  SG_ IPK_200ms_PDU06_Reserve04 : 39|2@0+ (1,0) [0|3] "" Vector_XXX
  SG_ IPK_200ms_PDU06_Reserve05 : 47|1@0+ (1,0) [0|1] "" Vector_XXX
- SG_ MinuteOfHour : 37|6@0+ (1.0,0.0) [0.0|59.0] "" Vector_XXX
- SG_ SecsOfMinute : 45|6@0+ (1.0,0.0) [0.0|59.0] "" Vector_XXX
+ SG_ MinuteOfHour : 21|6@1+ (1.0,0.0) [0.0|63.0] "" Vector_XXX
+ SG_ SecsOfMinute : 27|6@1+ (1.0,0.0) [0.0|63.0] "" Vector_XXX
  SG_ TimeDspFmt : 46|1@0+ (1,0) [0|1] "" Vector_XXX
 
 BO_ 817 IPK_CFCAN_FrP07 : 4 ICM

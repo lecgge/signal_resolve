@@ -59,27 +59,33 @@ uint64_t CodecEngine::ExtractBits(
         // ── Motorola: start_bit = MSB (DBC reversed bit numbering) ─────
         //
         // DBC: bit 0 = byte0.MSB, bit 7 = byte0.LSB, bit 8 = byte1.MSB...
-        //   MSB byte = (start_bit + bit_length - 1) / 8  (higher index)
-        //   LSB byte = start_bit / 8  (lower index)
-        //   lsb_in_byte = start_bit % 8
+        //   lsb_in_byte = 7 - (start_bit % 8)
+        //   Absolute LSB position = start_bit/8 * 8 + lsb_in_byte
+        //   Absolute MSB position = start_bit/8 * 8 + lsb_in_byte + bit_length - 1
+        //   First byte = start_bit / 8
+        //   Last byte  = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8
         //
-        uint32_t msb_byte     = (start_bit + bit_length - 1) / 8;
-        uint32_t lsb_byte     = start_bit / 8;
-        uint32_t lsb_in_byte  = start_bit % 8;
+        uint32_t first_byte   = start_bit / 8;
+        uint32_t lsb_in_byte  = 7 - (start_bit % 8);
+        uint32_t last_byte    = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8;
 
-        if (msb_byte >= size) return 0;
+        if (last_byte >= size) return 0;
 
-        // Assemble bytes descending (MSB byte first = higher index)
+        // Assemble bytes ascending into big-endian uint64
         uint64_t val = 0;
-        uint32_t bytes_needed = msb_byte - lsb_byte + 1;
+        uint32_t bytes_needed = last_byte - first_byte + 1;
         if (bytes_needed > 8) bytes_needed = 8;
         for (uint32_t i = 0; i < bytes_needed; ++i) {
-            uint32_t bi = msb_byte - i;
+            uint32_t bi = first_byte + i;
             if (bi < size)
                 val = (val << 8) | data[bi];
         }
 
-        val >>= lsb_in_byte;
+        // Shift right to align LSB to bit 0
+        uint32_t shift = (first_byte == 0 && last_byte == 7 && bit_length == 64)
+                             ? 0u
+                             : static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
+        val >>= shift;
 
         uint64_t mask = (bit_length == 64) ? ~uint64_t(0)
                                            : ((uint64_t(1) << bit_length) - 1);
@@ -132,29 +138,34 @@ void CodecEngine::PackBits(
 
     } else {
         // ── Motorola: start_bit = MSB (DBC reversed bit numbering) ─────
-        //   DBC: bit 0 = byte0.MSB, bit 7 = byte0.LSB, bit 8 = byte1.MSB...
-        //   MSB byte = (start_bit + bit_length - 1) / 8  (higher index)
-        //   LSB byte = start_bit / 8  (lower index)
-        //   msb_in_byte = (start_bit + bit_length - 1) % 8
-        //   lsb_in_byte = start_bit % 8
+        //   lsb_in_byte = 7 - (start_bit % 8)
+        //   first_byte = start_bit / 8
+        //   last_byte  = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8
+        //   msb_in_byte = (first_byte * 8 + lsb_in_byte + bit_length - 1) % 8
         //
-        uint32_t msb_byte     = (start_bit + bit_length - 1) / 8;
-        uint32_t lsb_byte     = start_bit / 8;
-        uint32_t msb_in_byte  = (start_bit + bit_length - 1) % 8;
-        uint32_t lsb_in_byte  = start_bit % 8;
+        uint32_t first_byte   = start_bit / 8;
+        uint32_t lsb_in_byte  = 7 - (start_bit % 8);
+        uint32_t last_byte    = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8;
+        uint32_t msb_in_byte  = (first_byte * 8 + lsb_in_byte + bit_length - 1) % 8;
 
-        // Place value so that byte lsb_byte contains the LSB of the value
-        // at bit lsb_in_byte, matching ExtractBits' assembly order.
-        uint64_t val_shifted = raw_value << (lsb_byte * 8 + lsb_in_byte);
+        // Place value at correct position in big-endian layout
+        uint32_t shift = (first_byte == 0 && last_byte == 7 && bit_length == 64)
+                             ? 0u
+                             : static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
 
-        for (uint32_t bi = lsb_byte; bi <= msb_byte && bi < size; ++bi) {
-            uint8_t new_byte = static_cast<uint8_t>(val_shifted >> (bi * 8));
+        for (uint32_t bi = first_byte; bi <= last_byte && bi < size; ++bi) {
+            uint32_t byte_idx = last_byte - bi;
+            uint32_t bit_pos = byte_idx * 8 + shift;
+            uint8_t new_byte = (bit_pos < 64)
+                                   ? static_cast<uint8_t>(raw_value >> bit_pos)
+                                   : 0;
 
             uint8_t sig_mask = 0xFF;
-            if (bi == msb_byte) {
-                sig_mask &= static_cast<uint8_t>((1u << (msb_in_byte + 1)) - 1);
+            if (bi == last_byte) {
+                sig_mask = (msb_in_byte == 7) ? 0x80
+                          : static_cast<uint8_t>(0xFF << (7 - msb_in_byte));
             }
-            if (bi == lsb_byte && lsb_in_byte > 0) {
+            if (bi == first_byte && lsb_in_byte > 0) {
                 sig_mask &= static_cast<uint8_t>(0xFF << lsb_in_byte);
             }
 
@@ -173,8 +184,11 @@ double CodecEngine::RawToPhysical(uint64_t raw, double factor, double offset) {
 
 uint64_t CodecEngine::PhysicalToRaw(double physical, double factor, double offset) {
     double raw_d = (physical - offset) / factor;
-    // Round to nearest integer
-    return static_cast<uint64_t>(std::llround(raw_d));
+    // Round to nearest integer, clamp to uint64 range
+    double rounded = std::round(raw_d);
+    if (rounded >= static_cast<double>(UINT64_MAX)) return UINT64_MAX;
+    if (rounded <= 0.0) return 0;
+    return static_cast<uint64_t>(rounded);
 }
 
 // ============================================================================

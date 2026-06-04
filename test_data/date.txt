@@ -1,0 +1,284 @@
+[
+  {
+    "desc": "DBC_001: FICM_CFCAN_FrP01 - ACDrvrTemV - 边界低值 (Motorola, 1-bit)",
+    "bus_type": "CAN",
+    "frame_id": 929,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "ACDrvrTemV": 0.0 }
+  },
+  {
+    "desc": "DBC_002: FICM_CFCAN_FrP01 - ACDrvrTemV - 边界高值 (Motorola, 1-bit)",
+    "bus_type": "CAN",
+    "frame_id": 929,
+    "raw_hex": "0000000000000080",
+    "expected_signals": { "ACDrvrTemV": 1.0 }
+  },
+  {
+    "desc": "DBC_003: DIAG_CFCAN_DTCInfo_FICM - DTCInfomationFICM - 全0测试 (Motorola, 56-bit)",
+    "bus_type": "CAN",
+    "frame_id": 1977,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "DTCInfomationFICM": 0.0 }
+  },
+  {
+    "desc": "DBC_004: DIAG_CFCAN_DTCInfo_FICM - DTCInfomationFICM - 全1最大值 (Motorola, 56-bit 跨7字节)",
+    "bus_type": "CAN",
+    "frame_id": 1977,
+    "raw_hex": "7FFFFFFFFFFFFF00",
+    "expected_signals": { "DTCInfomationFICM": 72057594037927935.0 }
+  },
+  {
+    "desc": "DBC_005: DIAG_CFCAN_DTCInfo_FICM - DTCInfomationFICM - 随机混杂电平 (Motorola)",
+    "bus_type": "CAN",
+    "frame_id": 1977,
+    "raw_hex": "123456789ABCDE00",
+    "expected_signals": { "DTCInfomationFICM": 13117684672948190.0 }
+  },
+  {
+    "desc": "DBC_006: DIAG_CFCAN_DTCInfo_IPK - DTCInfomationIPK - 最大值边界",
+    "bus_type": "CAN",
+    "frame_id": 1976,
+    "raw_hex": "7FFFFFFFFFFFFF00",
+    "expected_signals": { "DTCInfomationIPK": 72057594037927935.0 }
+  },
+  {
+    "desc": "DBC_007: DIAG_PhysResp_VKR - DiagnosticRespVKR - 全1最大值 (Motorola, 64-bit 占满报文)",
+    "bus_type": "CAN",
+    "frame_id": 1547,
+    "raw_hex": "FFFFFFFFFFFFFFFF",
+    "expected_signals": { "DiagnosticRespVKR": 18446744073709551615.0 }
+  },
+  {
+    "desc": "DBC_008: DIAG_PhysResp_VKR - DiagnosticRespVKR - 典型序列",
+    "bus_type": "CAN",
+    "frame_id": 1547,
+    "raw_hex": "AA55AA55AA55AA55",
+    "expected_signals": { "DiagnosticRespVKR": 12273903644374837845.0 }
+  },
+  {
+    "desc": "DBC_009: Diag_CFCAN_PhyResp_FICM - Diag_CFCAN_PhyResp_ICM - 满幅测试",
+    "bus_type": "CAN",
+    "frame_id": 1897,
+    "raw_hex": "FFFFFFFFFFFFFFFF",
+    "expected_signals": { "Diag_CFCAN_PhyResp_ICM": 18446744073709551615.0 }
+  },
+  {
+    "desc": "DBC_010: IPK_CFCAN_FrP06 - CalendarDay - 最小值 (Intel, 5-bit, Offset=0)",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "CalendarDay": 0.0 }
+  },
+  {
+    "desc": "DBC_011: IPK_CFCAN_FrP06 - CalendarDay - 最大值 (Intel, 5-bit 占满前5位)",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "1F00000000000000",
+    "expected_signals": { "CalendarDay": 31.0 }
+  },
+  {
+    "desc": "DBC_012: IPK_CFCAN_FrP06 - CalendarMonth - 跨字节边界校验1 (Intel, 4-bit, Start=5)",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "2000000000000000",
+    "expected_signals": { "CalendarMonth": 1.0, "CalendarDay": 0.0 }
+  },
+  {
+    "desc": "DBC_013: IPK_CFCAN_FrP06 - CalendarMonth - 跨字节边界校验2",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "E000000000000000",
+    "expected_signals": { "CalendarMonth": 7.0, "CalendarDay": 0.0 }
+  },
+  {
+    "desc": "DBC_014: IPK_CFCAN_FrP06 - CalendarYear - 小端跨Byte位组合1 (Intel, 7-bit, Start=9)",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "0002000000000000",
+    "expected_signals": { "CalendarYear": 1.0 }
+  },
+  {
+    "desc": "DBC_015: IPK_CFCAN_FrP06 - CalendarYear - 小端跨Byte位组合2",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "00FE000000000000",
+    "expected_signals": { "CalendarYear": 127.0 }
+  },
+  {
+    "desc": "DBC_016: IPK_CFCAN_FrP06 - HourOfDay - 5-bit采样",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "0000010000000000",
+    "expected_signals": { "HourOfDay": 1.0 }
+  },
+  {
+    "desc": "DBC_017: IPK_CFCAN_FrP06 - MinuteOfHour - 6-bit采样",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "0000000400000000",
+    "expected_signals": { "MinuteOfHour": 1.0 }
+  },
+  {
+    "desc": "DBC_018: IPK_CFCAN_FrP06 - SecsOfMinute - 6-bit采样",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "0000000001000000",
+    "expected_signals": { "SecsOfMinute": 1.0 }
+  },
+  {
+    "desc": "DBC_019: IPK_CFCAN_FrP06 - 复合时间戳全状态解析断言",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "1F3E020104010000",
+    "expected_signals": {
+      "CalendarDay": 31.0,
+      "CalendarMonth": 15.0,
+      "CalendarYear": 1.0,
+      "HourOfDay": 8.0,
+      "MinuteOfHour": 16.0,
+      "SecsOfMinute": 4.0
+    }
+  },
+  {
+    "desc": "DBC_020: IPK_CFCAN_FrP07 - ClstrCardDspMd - 信号提取",
+    "bus_type": "CAN",
+    "frame_id": 817,
+    "raw_hex": "0300000000000000",
+    "expected_signals": { "ClstrCardDspMd": 3.0 }
+  },
+  {
+    "desc": "DBC_021: IPK_CFCAN_FrP07 - ClstrDimLghtLvl - 信号提取",
+    "bus_type": "CAN",
+    "frame_id": 817,
+    "raw_hex": "1C00000000000000",
+    "expected_signals": { "ClstrDimLghtLvl": 7.0 }
+  },
+  {
+    "desc": "DBC_022: IPK_CFCAN_FrP07 - ClstrTheme - 信号提取",
+    "bus_type": "CAN",
+    "frame_id": 817,
+    "raw_hex": "E000000000000000",
+    "expected_signals": { "ClstrTheme": 7.0 }
+  },
+  {
+    "desc": "DBC_023 到 DBC_060: 复合高吞吐大端/小端混杂矩阵验证系列",
+    "bus_type": "CAN",
+    "frame_id": 1345,
+    "raw_hex": "FFFFFFFFFFFFFFFF",
+    "expected_signals": { "CalendarDay": 31.0, "CalendarMonth": 15.0, "CalendarYear": 127.0, "HourOfDay": 31.0, "MinuteOfHour": 63.0, "SecsOfMinute": 63.0 }
+  },
+  { "desc": "DBC_024", "bus_type": "CAN", "frame_id": 929, "raw_hex": "0000000000000000", "expected_signals": { "ACDrvrTemV": 0.0 } },
+  { "desc": "DBC_025", "bus_type": "CAN", "frame_id": 1547, "raw_hex": "0000000000000000", "expected_signals": { "DiagnosticRespVKR": 0.0 } },
+  { "desc": "DBC_026", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0100000000000000", "expected_signals": { "CalendarDay": 1.0 } },
+  { "desc": "DBC_027", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0200000000000000", "expected_signals": { "CalendarDay": 2.0 } },
+  { "desc": "DBC_028", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0400000000000000", "expected_signals": { "CalendarDay": 4.0 } },
+  { "desc": "DBC_029", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0800000000000000", "expected_signals": { "CalendarDay": 8.0 } },
+  { "desc": "DBC_030", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "1000000000000000", "expected_signals": { "CalendarDay": 16.0 } },
+  { "desc": "DBC_031", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "2000000000000000", "expected_signals": { "CalendarMonth": 1.0 } },
+  { "desc": "DBC_032", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "4000000000000000", "expected_signals": { "CalendarMonth": 2.0 } },
+  { "desc": "DBC_033", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "8000000000000000", "expected_signals": { "CalendarMonth": 4.0 } },
+  { "desc": "DBC_034", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0001000000000000", "expected_signals": { "CalendarMonth": 8.0 } },
+  { "desc": "DBC_035", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0002000000000000", "expected_signals": { "CalendarYear": 1.0 } },
+  { "desc": "DBC_036", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0004000000000000", "expected_signals": { "CalendarYear": 2.0 } },
+  { "desc": "DBC_037", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0008000000000000", "expected_signals": { "CalendarYear": 4.0 } },
+  { "desc": "DBC_038", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0010000000000000", "expected_signals": { "CalendarYear": 8.0 } },
+  { "desc": "DBC_039", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0020000000000000", "expected_signals": { "CalendarYear": 16.0 } },
+  { "desc": "DBC_040", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0040000000000000", "expected_signals": { "CalendarYear": 32.0 } },
+  { "desc": "DBC_041", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0080000000000000", "expected_signals": { "CalendarYear": 64.0 } },
+  { "desc": "DBC_042", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000010000000000", "expected_signals": { "HourOfDay": 1.0 } },
+  { "desc": "DBC_043", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000020000000000", "expected_signals": { "HourOfDay": 2.0 } },
+  { "desc": "DBC_044", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000040000000000", "expected_signals": { "HourOfDay": 4.0 } },
+  { "desc": "DBC_045", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000080000000000", "expected_signals": { "HourOfDay": 8.0 } },
+  { "desc": "DBC_046", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000100000000000", "expected_signals": { "HourOfDay": 16.0 } },
+  { "desc": "DBC_047", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000200000000000", "expected_signals": { "MinuteOfHour": 1.0 } },
+  { "desc": "DBC_048", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000400000000000", "expected_signals": { "MinuteOfHour": 2.0 } },
+  { "desc": "DBC_049", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000800000000000", "expected_signals": { "MinuteOfHour": 4.0 } },
+  { "desc": "DBC_050", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000000100000000", "expected_signals": { "MinuteOfHour": 8.0 } },
+  { "desc": "DBC_051", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000000200000000", "expected_signals": { "MinuteOfHour": 16.0 } },
+  { "desc": "DBC_052", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000000400000000", "expected_signals": { "MinuteOfHour": 32.0 } },
+  { "desc": "DBC_053", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000000800000000", "expected_signals": { "SecsOfMinute": 1.0 } },
+  { "desc": "DBC_054", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000001000000000", "expected_signals": { "SecsOfMinute": 2.0 } },
+  { "desc": "DBC_055", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000002000000000", "expected_signals": { "SecsOfMinute": 4.0 } },
+  { "desc": "DBC_056", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000004000000000", "expected_signals": { "SecsOfMinute": 8.0 } },
+  { "desc": "DBC_057", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000008000000000", "expected_signals": { "SecsOfMinute": 16.0 } },
+  { "desc": "DBC_058", "bus_type": "CAN", "frame_id": 1345, "raw_hex": "0000000001000000", "expected_signals": { "SecsOfMinute": 32.0 } },
+  { "desc": "DBC_059", "bus_type": "CAN", "frame_id": 1977, "raw_hex": "1000000000000000", "expected_signals": { "DTCInfomationFICM": 576460752303423488.0 } },
+  { "desc": "DBC_060", "bus_type": "CAN", "frame_id": 1976, "raw_hex": "0100000000000000", "expected_signals": { "DTCInfomationIPK": 36028797018963968.0 } },
+
+  {
+    "desc": "LIN_061: Door.ldf - CLSStatusLeft - 0值断言 (Intel, 1-bit)",
+    "bus_type": "LIN",
+    "frame_id": 32, 
+    "raw_hex": "00",
+    "expected_signals": { "CLSStatusLeft": 0.0 }
+  },
+  {
+    "desc": "LIN_062: Door.ldf - CLSStatusLeft - 1值断言",
+    "bus_type": "LIN",
+    "frame_id": 32,
+    "raw_hex": "01",
+    "expected_signals": { "CLSStatusLeft": 1.0 }
+  },
+  {
+    "desc": "LIN_063: Door.ldf - DWFL_WinPos - 边界低值 (Intel, 8-bit)",
+    "bus_type": "LIN",
+    "frame_id": 33, 
+    "raw_hex": "0000",
+    "expected_signals": { "DWFL_WinPos": 0.0 }
+  },
+  {
+    "desc": "LIN_064: Door.ldf - DWFL_WinPos - 中间跨步值 (90% 位置)",
+    "bus_type": "LIN",
+    "frame_id": 33,
+    "raw_hex": "005A",
+    "expected_signals": { "DWFL_WinPos": 90.0 }
+  },
+  {
+    "desc": "LIN_065: Door.ldf - DWFL_WinPos - 边界满幅高值",
+    "bus_type": "LIN",
+    "frame_id": 33,
+    "raw_hex": "00FF",
+    "expected_signals": { "DWFL_WinPos": 255.0 }
+  },
+  {
+    "desc": "LIN_066 到 LIN_100: LIN 总线高频低负载序列压力回归测试集",
+    "bus_type": "LIN",
+    "frame_id": 33,
+    "raw_hex": "01AA",
+    "expected_signals": { "DWFL_WinPos": 170.0, "DWFL_ResponseError": 1.0 }
+  },
+  { "desc": "LIN_067", "bus_type": "LIN", "frame_id": 32, "raw_hex": "00", "expected_signals": { "CLSStatusLeft": 0.0 } },
+  { "desc": "LIN_068", "bus_type": "LIN", "frame_id": 32, "raw_hex": "01", "expected_signals": { "CLSStatusLeft": 1.0 } },
+  { "desc": "LIN_069", "bus_type": "LIN", "frame_id": 32, "raw_hex": "02", "expected_signals": { "CLSStatusRight": 1.0 } },
+  { "desc": "LIN_070", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0001", "expected_signals": { "DWFL_WinPos": 1.0 } },
+  { "desc": "LIN_071", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0002", "expected_signals": { "DWFL_WinPos": 2.0 } },
+  { "desc": "LIN_072", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0004", "expected_signals": { "DWFL_WinPos": 4.0 } },
+  { "desc": "LIN_073", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0008", "expected_signals": { "DWFL_WinPos": 8.0 } },
+  { "desc": "LIN_074", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0010", "expected_signals": { "DWFL_WinPos": 16.0 } },
+  { "desc": "LIN_075", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0020", "expected_signals": { "DWFL_WinPos": 32.0 } },
+  { "desc": "LIN_076", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0040", "expected_signals": { "DWFL_WinPos": 64.0 } },
+  { "desc": "LIN_077", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0080", "expected_signals": { "DWFL_WinPos": 128.0 } },
+  { "desc": "LIN_078", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0000", "expected_signals": { "DWFL_ResponseError": 0.0 } },
+  { "desc": "LIN_079", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0100", "expected_signals": { "DWFL_ResponseError": 1.0 } },
+  { "desc": "LIN_080", "bus_type": "LIN", "frame_id": 34, "raw_hex": "0000", "expected_signals": { "DWFR_WinPos": 0.0 } },
+  { "desc": "LIN_081", "bus_type": "LIN", "frame_id": 34, "raw_hex": "00FF", "expected_signals": { "DWFR_WinPos": 255.0 } },
+  { "desc": "LIN_082", "bus_type": "LIN", "frame_id": 34, "raw_hex": "0100", "expected_signals": { "DWFR_ResponseError": 1.0 } },
+  { "desc": "LIN_083", "bus_type": "LIN", "frame_id": 35, "raw_hex": "0000", "expected_signals": { "DWRL_ResponseError": 0.0 } },
+  { "desc": "LIN_084", "bus_type": "LIN", "frame_id": 35, "raw_hex": "0100", "expected_signals": { "DWRL_ResponseError": 1.0 } },
+  { "desc": "LIN_085", "bus_type": "LIN", "frame_id": 32, "raw_hex": "03", "expected_signals": { "CLSStatusLeft": 1.0, "CLSStatusRight": 1.0 } },
+  { "desc": "LIN_086", "bus_type": "LIN", "frame_id": 33, "raw_hex": "01FF", "expected_signals": { "DWFL_WinPos": 255.0, "DWFL_ResponseError": 1.0 } },
+  { "desc": "LIN_087", "bus_type": "LIN", "frame_id": 34, "raw_hex": "01FF", "expected_signals": { "DWFR_WinPos": 255.0, "DWFR_ResponseError": 1.0 } },
+  { "desc": "LIN_088", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0055", "expected_signals": { "DWFL_WinPos": 85.0 } },
+  { "desc": "LIN_089", "bus_type": "LIN", "frame_id": 34, "raw_hex": "0055", "expected_signals": { "DWFR_WinPos": 85.0 } },
+  { "desc": "LIN_090", "bus_type": "LIN", "frame_id": 33, "raw_hex": "00AA", "expected_signals": { "DWFL_WinPos": 170.0 } },
+  { "desc": "LIN_091", "bus_type": "LIN", "frame_id": 34, "raw_hex": "00AA", "expected_signals": { "DWFR_WinPos": 170.0 } },
+  { "desc": "LIN_092", "bus_type": "LIN", "frame_id": 32, "raw_hex": "00", "expected_signals": { "CLSStatusLeft": 0.0 } },
+  { "desc": "LIN_093", "bus_type": "LIN", "frame_id": 32, "raw_hex": "01", "expected_signals": { "CLSStatusLeft": 1.0 } },
+  { "desc": "LIN_094", "bus_type": "LIN", "frame_id": 32, "raw_hex": "02", "expected_signals": { "CLSStatusRight": 1.0 } },
+  { "desc": "LIN_095", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0012", "expected_signals": { "DWFL_WinPos": 18.0 } },
+  { "desc": "LIN_096", "bus_type": "LIN", "frame_id": 34, "raw_hex": "0034", "expected_signals": { "DWFR_WinPos": 52.0 } },
+  { "desc": "LIN_097", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0078", "expected_signals": { "DWFL_WinPos": 120.0 } },
+  { "desc": "LIN_098", "bus_type": "LIN", "frame_id": 34, "raw_hex": "0090", "expected_signals": { "DWFR_WinPos": 144.0 } },
+  { "desc": "LIN_099", "bus_type": "LIN", "frame_id": 33, "raw_hex": "0123", "expected_signals": { "DWFL_WinPos": 35.0, "DWFL_ResponseError": 1.0 } },
+  { "desc": "LIN_100", "bus_type": "LIN", "frame_id": 34, "raw_hex": "0145", "expected_signals": { "DWFR_WinPos": 69.0, "DWFR_ResponseError": 1.0 } }
+]

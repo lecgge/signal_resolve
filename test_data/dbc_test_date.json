@@ -1,0 +1,1484 @@
+[
+  {
+    "id": 1,
+    "desc": "ACDrvrTemV min",
+    "frame_id": 929,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "ACDrvrTemV": 0.0
+    }
+  },
+  {
+    "id": 2,
+    "desc": "ACDrvrTemV max",
+    "frame_id": 929,
+    "raw_hex": "0000000000000080",
+    "expected_signals": {
+      "ACDrvrTemV": 1.0
+    }
+  },
+  {
+    "id": 3,
+    "desc": "DTC all zero",
+    "frame_id": 1977,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 0.0
+    }
+  },
+  {
+    "id": 4,
+    "desc": "DTC byte0 bit0",
+    "frame_id": 1977,
+    "raw_hex": "0100000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 281474976710656.0
+    }
+  },
+  {
+    "id": 5,
+    "desc": "DTC byte0 bit1",
+    "frame_id": 1977,
+    "raw_hex": "0200000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 562949953421312.0
+    }
+  },
+  {
+    "id": 6,
+    "desc": "DTC byte0 bit2",
+    "frame_id": 1977,
+    "raw_hex": "0400000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 1125899906842624.0
+    }
+  },
+  {
+    "id": 7,
+    "desc": "DTC byte0 bit3",
+    "frame_id": 1977,
+    "raw_hex": "0800000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 2251799813685248.0
+    }
+  },
+  {
+    "id": 8,
+    "desc": "DTC byte0 bit4",
+    "frame_id": 1977,
+    "raw_hex": "1000000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 4503599627370496.0
+    }
+  },
+  {
+    "id": 9,
+    "desc": "DTC byte0 bit5",
+    "frame_id": 1977,
+    "raw_hex": "2000000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 9007199254740992.0
+    }
+  },
+  {
+    "id": 10,
+    "desc": "DTC byte0 bit6",
+    "frame_id": 1977,
+    "raw_hex": "4000000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 1.8014398509481984e+16
+    }
+  },
+  {
+    "id": 11,
+    "desc": "DTC byte0 bit7",
+    "frame_id": 1977,
+    "raw_hex": "8000000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 3.602879701896397e+16
+    }
+  },
+  {
+    "id": 12,
+    "desc": "DTC byte1 bit0",
+    "frame_id": 1977,
+    "raw_hex": "0001000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 1099511627776.0
+    }
+  },
+  {
+    "id": 13,
+    "desc": "DTC byte1 bit1",
+    "frame_id": 1977,
+    "raw_hex": "0002000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 2199023255552.0
+    }
+  },
+  {
+    "id": 14,
+    "desc": "DTC byte1 bit2",
+    "frame_id": 1977,
+    "raw_hex": "0004000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 4398046511104.0
+    }
+  },
+  {
+    "id": 15,
+    "desc": "DTC byte1 bit3",
+    "frame_id": 1977,
+    "raw_hex": "0008000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 8796093022208.0
+    }
+  },
+  {
+    "id": 16,
+    "desc": "DTC byte1 bit4",
+    "frame_id": 1977,
+    "raw_hex": "0010000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 17592186044416.0
+    }
+  },
+  {
+    "id": 17,
+    "desc": "DTC byte1 bit5",
+    "frame_id": 1977,
+    "raw_hex": "0020000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 35184372088832.0
+    }
+  },
+  {
+    "id": 18,
+    "desc": "DTC byte1 bit6",
+    "frame_id": 1977,
+    "raw_hex": "0040000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 70368744177664.0
+    }
+  },
+  {
+    "id": 19,
+    "desc": "DTC byte1 bit7",
+    "frame_id": 1977,
+    "raw_hex": "0080000000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 140737488355328.0
+    }
+  },
+  {
+    "id": 20,
+    "desc": "DTC byte2 bit0",
+    "frame_id": 1977,
+    "raw_hex": "0000010000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 4294967296.0
+    }
+  },
+  {
+    "id": 21,
+    "desc": "DTC byte2 bit1",
+    "frame_id": 1977,
+    "raw_hex": "0000020000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 8589934592.0
+    }
+  },
+  {
+    "id": 22,
+    "desc": "DTC byte2 bit2",
+    "frame_id": 1977,
+    "raw_hex": "0000040000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 17179869184.0
+    }
+  },
+  {
+    "id": 23,
+    "desc": "DTC byte2 bit3",
+    "frame_id": 1977,
+    "raw_hex": "0000080000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 34359738368.0
+    }
+  },
+  {
+    "id": 24,
+    "desc": "DTC byte2 bit4",
+    "frame_id": 1977,
+    "raw_hex": "0000100000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 68719476736.0
+    }
+  },
+  {
+    "id": 25,
+    "desc": "DTC byte2 bit5",
+    "frame_id": 1977,
+    "raw_hex": "0000200000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 137438953472.0
+    }
+  },
+  {
+    "id": 26,
+    "desc": "DTC byte2 bit6",
+    "frame_id": 1977,
+    "raw_hex": "0000400000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 274877906944.0
+    }
+  },
+  {
+    "id": 27,
+    "desc": "DTC byte2 bit7",
+    "frame_id": 1977,
+    "raw_hex": "0000800000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 549755813888.0
+    }
+  },
+  {
+    "id": 28,
+    "desc": "DTC byte3 bit0",
+    "frame_id": 1977,
+    "raw_hex": "0000000100000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 16777216.0
+    }
+  },
+  {
+    "id": 29,
+    "desc": "DTC byte3 bit1",
+    "frame_id": 1977,
+    "raw_hex": "0000000200000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 33554432.0
+    }
+  },
+  {
+    "id": 30,
+    "desc": "DTC byte3 bit2",
+    "frame_id": 1977,
+    "raw_hex": "0000000400000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 67108864.0
+    }
+  },
+  {
+    "id": 31,
+    "desc": "DTC byte3 bit3",
+    "frame_id": 1977,
+    "raw_hex": "0000000800000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 134217728.0
+    }
+  },
+  {
+    "id": 32,
+    "desc": "DTC byte3 bit4",
+    "frame_id": 1977,
+    "raw_hex": "0000001000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 268435456.0
+    }
+  },
+  {
+    "id": 33,
+    "desc": "DTC byte3 bit5",
+    "frame_id": 1977,
+    "raw_hex": "0000002000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 536870912.0
+    }
+  },
+  {
+    "id": 34,
+    "desc": "DTC byte3 bit6",
+    "frame_id": 1977,
+    "raw_hex": "0000004000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 1073741824.0
+    }
+  },
+  {
+    "id": 35,
+    "desc": "DTC byte3 bit7",
+    "frame_id": 1977,
+    "raw_hex": "0000008000000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 2147483648.0
+    }
+  },
+  {
+    "id": 36,
+    "desc": "DTC byte4 bit0",
+    "frame_id": 1977,
+    "raw_hex": "0000000001000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 65536.0
+    }
+  },
+  {
+    "id": 37,
+    "desc": "DTC byte4 bit1",
+    "frame_id": 1977,
+    "raw_hex": "0000000002000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 131072.0
+    }
+  },
+  {
+    "id": 38,
+    "desc": "DTC byte4 bit2",
+    "frame_id": 1977,
+    "raw_hex": "0000000004000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 262144.0
+    }
+  },
+  {
+    "id": 39,
+    "desc": "DTC byte4 bit3",
+    "frame_id": 1977,
+    "raw_hex": "0000000008000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 524288.0
+    }
+  },
+  {
+    "id": 40,
+    "desc": "DTC byte4 bit4",
+    "frame_id": 1977,
+    "raw_hex": "0000000010000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 1048576.0
+    }
+  },
+  {
+    "id": 41,
+    "desc": "DTC byte4 bit5",
+    "frame_id": 1977,
+    "raw_hex": "0000000020000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 2097152.0
+    }
+  },
+  {
+    "id": 42,
+    "desc": "DTC byte4 bit6",
+    "frame_id": 1977,
+    "raw_hex": "0000000040000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 4194304.0
+    }
+  },
+  {
+    "id": 43,
+    "desc": "DTC byte4 bit7",
+    "frame_id": 1977,
+    "raw_hex": "0000000080000000",
+    "expected_signals": {
+      "DTCInfomationFICM": 8388608.0
+    }
+  },
+  {
+    "id": 44,
+    "desc": "DTC byte5 bit0",
+    "frame_id": 1977,
+    "raw_hex": "0000000000010000",
+    "expected_signals": {
+      "DTCInfomationFICM": 256.0
+    }
+  },
+  {
+    "id": 45,
+    "desc": "DTC byte5 bit1",
+    "frame_id": 1977,
+    "raw_hex": "0000000000020000",
+    "expected_signals": {
+      "DTCInfomationFICM": 512.0
+    }
+  },
+  {
+    "id": 46,
+    "desc": "DTC byte5 bit2",
+    "frame_id": 1977,
+    "raw_hex": "0000000000040000",
+    "expected_signals": {
+      "DTCInfomationFICM": 1024.0
+    }
+  },
+  {
+    "id": 47,
+    "desc": "DTC byte5 bit3",
+    "frame_id": 1977,
+    "raw_hex": "0000000000080000",
+    "expected_signals": {
+      "DTCInfomationFICM": 2048.0
+    }
+  },
+  {
+    "id": 48,
+    "desc": "DTC byte5 bit4",
+    "frame_id": 1977,
+    "raw_hex": "0000000000100000",
+    "expected_signals": {
+      "DTCInfomationFICM": 4096.0
+    }
+  },
+  {
+    "id": 49,
+    "desc": "DTC byte5 bit5",
+    "frame_id": 1977,
+    "raw_hex": "0000000000200000",
+    "expected_signals": {
+      "DTCInfomationFICM": 8192.0
+    }
+  },
+  {
+    "id": 50,
+    "desc": "DTC byte5 bit6",
+    "frame_id": 1977,
+    "raw_hex": "0000000000400000",
+    "expected_signals": {
+      "DTCInfomationFICM": 16384.0
+    }
+  },
+  {
+    "id": 51,
+    "desc": "DTC byte5 bit7",
+    "frame_id": 1977,
+    "raw_hex": "0000000000800000",
+    "expected_signals": {
+      "DTCInfomationFICM": 32768.0
+    }
+  },
+  {
+    "id": 52,
+    "desc": "DTC byte6 bit0",
+    "frame_id": 1977,
+    "raw_hex": "0000000000000100",
+    "expected_signals": {
+      "DTCInfomationFICM": 1.0
+    }
+  },
+  {
+    "id": 53,
+    "desc": "DTC byte6 bit1",
+    "frame_id": 1977,
+    "raw_hex": "0000000000000200",
+    "expected_signals": {
+      "DTCInfomationFICM": 2.0
+    }
+  },
+  {
+    "id": 54,
+    "desc": "DTC byte6 bit2",
+    "frame_id": 1977,
+    "raw_hex": "0000000000000400",
+    "expected_signals": {
+      "DTCInfomationFICM": 4.0
+    }
+  },
+  {
+    "id": 55,
+    "desc": "DTC byte6 bit3",
+    "frame_id": 1977,
+    "raw_hex": "0000000000000800",
+    "expected_signals": {
+      "DTCInfomationFICM": 8.0
+    }
+  },
+  {
+    "id": 56,
+    "desc": "DTC byte6 bit4",
+    "frame_id": 1977,
+    "raw_hex": "0000000000001000",
+    "expected_signals": {
+      "DTCInfomationFICM": 16.0
+    }
+  },
+  {
+    "id": 57,
+    "desc": "DTC byte6 bit5",
+    "frame_id": 1977,
+    "raw_hex": "0000000000002000",
+    "expected_signals": {
+      "DTCInfomationFICM": 32.0
+    }
+  },
+  {
+    "id": 58,
+    "desc": "DTC byte6 bit6",
+    "frame_id": 1977,
+    "raw_hex": "0000000000004000",
+    "expected_signals": {
+      "DTCInfomationFICM": 64.0
+    }
+  },
+  {
+    "id": 59,
+    "desc": "DTC byte6 bit7",
+    "frame_id": 1977,
+    "raw_hex": "0000000000008000",
+    "expected_signals": {
+      "DTCInfomationFICM": 128.0
+    }
+  },
+  {
+    "id": 60,
+    "desc": "VKR all zero",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 0.0
+    }
+  },
+  {
+    "id": 61,
+    "desc": "VKR byte0 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0100000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 7.205759403792794e+16
+    }
+  },
+  {
+    "id": 62,
+    "desc": "VKR byte0 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0200000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1.4411518807585587e+17
+    }
+  },
+  {
+    "id": 63,
+    "desc": "VKR byte0 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0400000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2.8823037615171174e+17
+    }
+  },
+  {
+    "id": 64,
+    "desc": "VKR byte0 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0800000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 5.764607523034235e+17
+    }
+  },
+  {
+    "id": 65,
+    "desc": "VKR byte0 bit4",
+    "frame_id": 1547,
+    "raw_hex": "1000000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1.152921504606847e+18
+    }
+  },
+  {
+    "id": 66,
+    "desc": "VKR byte0 bit5",
+    "frame_id": 1547,
+    "raw_hex": "2000000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2.305843009213694e+18
+    }
+  },
+  {
+    "id": 67,
+    "desc": "VKR byte0 bit6",
+    "frame_id": 1547,
+    "raw_hex": "4000000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 4.611686018427388e+18
+    }
+  },
+  {
+    "id": 68,
+    "desc": "VKR byte0 bit7",
+    "frame_id": 1547,
+    "raw_hex": "8000000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 9.223372036854776e+18
+    }
+  },
+  {
+    "id": 69,
+    "desc": "VKR byte1 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0001000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 281474976710656.0
+    }
+  },
+  {
+    "id": 70,
+    "desc": "VKR byte1 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0002000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 562949953421312.0
+    }
+  },
+  {
+    "id": 71,
+    "desc": "VKR byte1 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0004000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1125899906842624.0
+    }
+  },
+  {
+    "id": 72,
+    "desc": "VKR byte1 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0008000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2251799813685248.0
+    }
+  },
+  {
+    "id": 73,
+    "desc": "VKR byte1 bit4",
+    "frame_id": 1547,
+    "raw_hex": "0010000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 4503599627370496.0
+    }
+  },
+  {
+    "id": 74,
+    "desc": "VKR byte1 bit5",
+    "frame_id": 1547,
+    "raw_hex": "0020000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 9007199254740992.0
+    }
+  },
+  {
+    "id": 75,
+    "desc": "VKR byte1 bit6",
+    "frame_id": 1547,
+    "raw_hex": "0040000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1.8014398509481984e+16
+    }
+  },
+  {
+    "id": 76,
+    "desc": "VKR byte1 bit7",
+    "frame_id": 1547,
+    "raw_hex": "0080000000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 3.602879701896397e+16
+    }
+  },
+  {
+    "id": 77,
+    "desc": "VKR byte2 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0000010000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1099511627776.0
+    }
+  },
+  {
+    "id": 78,
+    "desc": "VKR byte2 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0000020000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2199023255552.0
+    }
+  },
+  {
+    "id": 79,
+    "desc": "VKR byte2 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0000040000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 4398046511104.0
+    }
+  },
+  {
+    "id": 80,
+    "desc": "VKR byte2 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0000080000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 8796093022208.0
+    }
+  },
+  {
+    "id": 81,
+    "desc": "VKR byte2 bit4",
+    "frame_id": 1547,
+    "raw_hex": "0000100000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 17592186044416.0
+    }
+  },
+  {
+    "id": 82,
+    "desc": "VKR byte2 bit5",
+    "frame_id": 1547,
+    "raw_hex": "0000200000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 35184372088832.0
+    }
+  },
+  {
+    "id": 83,
+    "desc": "VKR byte2 bit6",
+    "frame_id": 1547,
+    "raw_hex": "0000400000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 70368744177664.0
+    }
+  },
+  {
+    "id": 84,
+    "desc": "VKR byte2 bit7",
+    "frame_id": 1547,
+    "raw_hex": "0000800000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 140737488355328.0
+    }
+  },
+  {
+    "id": 85,
+    "desc": "VKR byte3 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0000000100000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 4294967296.0
+    }
+  },
+  {
+    "id": 86,
+    "desc": "VKR byte3 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0000000200000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 8589934592.0
+    }
+  },
+  {
+    "id": 87,
+    "desc": "VKR byte3 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0000000400000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 17179869184.0
+    }
+  },
+  {
+    "id": 88,
+    "desc": "VKR byte3 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0000000800000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 34359738368.0
+    }
+  },
+  {
+    "id": 89,
+    "desc": "VKR byte3 bit4",
+    "frame_id": 1547,
+    "raw_hex": "0000001000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 68719476736.0
+    }
+  },
+  {
+    "id": 90,
+    "desc": "VKR byte3 bit5",
+    "frame_id": 1547,
+    "raw_hex": "0000002000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 137438953472.0
+    }
+  },
+  {
+    "id": 91,
+    "desc": "VKR byte3 bit6",
+    "frame_id": 1547,
+    "raw_hex": "0000004000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 274877906944.0
+    }
+  },
+  {
+    "id": 92,
+    "desc": "VKR byte3 bit7",
+    "frame_id": 1547,
+    "raw_hex": "0000008000000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 549755813888.0
+    }
+  },
+  {
+    "id": 93,
+    "desc": "VKR byte4 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0000000001000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 16777216.0
+    }
+  },
+  {
+    "id": 94,
+    "desc": "VKR byte4 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0000000002000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 33554432.0
+    }
+  },
+  {
+    "id": 95,
+    "desc": "VKR byte4 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0000000004000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 67108864.0
+    }
+  },
+  {
+    "id": 96,
+    "desc": "VKR byte4 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0000000008000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 134217728.0
+    }
+  },
+  {
+    "id": 97,
+    "desc": "VKR byte4 bit4",
+    "frame_id": 1547,
+    "raw_hex": "0000000010000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 268435456.0
+    }
+  },
+  {
+    "id": 98,
+    "desc": "VKR byte4 bit5",
+    "frame_id": 1547,
+    "raw_hex": "0000000020000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 536870912.0
+    }
+  },
+  {
+    "id": 99,
+    "desc": "VKR byte4 bit6",
+    "frame_id": 1547,
+    "raw_hex": "0000000040000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1073741824.0
+    }
+  },
+  {
+    "id": 100,
+    "desc": "VKR byte4 bit7",
+    "frame_id": 1547,
+    "raw_hex": "0000000080000000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2147483648.0
+    }
+  },
+  {
+    "id": 101,
+    "desc": "VKR byte5 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0000000000010000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 65536.0
+    }
+  },
+  {
+    "id": 102,
+    "desc": "VKR byte5 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0000000000020000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 131072.0
+    }
+  },
+  {
+    "id": 103,
+    "desc": "VKR byte5 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0000000000040000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 262144.0
+    }
+  },
+  {
+    "id": 104,
+    "desc": "VKR byte5 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0000000000080000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 524288.0
+    }
+  },
+  {
+    "id": 105,
+    "desc": "VKR byte5 bit4",
+    "frame_id": 1547,
+    "raw_hex": "0000000000100000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1048576.0
+    }
+  },
+  {
+    "id": 106,
+    "desc": "VKR byte5 bit5",
+    "frame_id": 1547,
+    "raw_hex": "0000000000200000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2097152.0
+    }
+  },
+  {
+    "id": 107,
+    "desc": "VKR byte5 bit6",
+    "frame_id": 1547,
+    "raw_hex": "0000000000400000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 4194304.0
+    }
+  },
+  {
+    "id": 108,
+    "desc": "VKR byte5 bit7",
+    "frame_id": 1547,
+    "raw_hex": "0000000000800000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 8388608.0
+    }
+  },
+  {
+    "id": 109,
+    "desc": "VKR byte6 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000100",
+    "expected_signals": {
+      "DiagnosticRespVKR": 256.0
+    }
+  },
+  {
+    "id": 110,
+    "desc": "VKR byte6 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000200",
+    "expected_signals": {
+      "DiagnosticRespVKR": 512.0
+    }
+  },
+  {
+    "id": 111,
+    "desc": "VKR byte6 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000400",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1024.0
+    }
+  },
+  {
+    "id": 112,
+    "desc": "VKR byte6 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000800",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2048.0
+    }
+  },
+  {
+    "id": 113,
+    "desc": "VKR byte6 bit4",
+    "frame_id": 1547,
+    "raw_hex": "0000000000001000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 4096.0
+    }
+  },
+  {
+    "id": 114,
+    "desc": "VKR byte6 bit5",
+    "frame_id": 1547,
+    "raw_hex": "0000000000002000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 8192.0
+    }
+  },
+  {
+    "id": 115,
+    "desc": "VKR byte6 bit6",
+    "frame_id": 1547,
+    "raw_hex": "0000000000004000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 16384.0
+    }
+  },
+  {
+    "id": 116,
+    "desc": "VKR byte6 bit7",
+    "frame_id": 1547,
+    "raw_hex": "0000000000008000",
+    "expected_signals": {
+      "DiagnosticRespVKR": 32768.0
+    }
+  },
+  {
+    "id": 117,
+    "desc": "VKR byte7 bit0",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000001",
+    "expected_signals": {
+      "DiagnosticRespVKR": 1.0
+    }
+  },
+  {
+    "id": 118,
+    "desc": "VKR byte7 bit1",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000002",
+    "expected_signals": {
+      "DiagnosticRespVKR": 2.0
+    }
+  },
+  {
+    "id": 119,
+    "desc": "VKR byte7 bit2",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000004",
+    "expected_signals": {
+      "DiagnosticRespVKR": 4.0
+    }
+  },
+  {
+    "id": 120,
+    "desc": "VKR byte7 bit3",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000008",
+    "expected_signals": {
+      "DiagnosticRespVKR": 8.0
+    }
+  },
+  {
+    "id": 121,
+    "desc": "VKR byte7 bit4",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000010",
+    "expected_signals": {
+      "DiagnosticRespVKR": 16.0
+    }
+  },
+  {
+    "id": 122,
+    "desc": "VKR byte7 bit5",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000020",
+    "expected_signals": {
+      "DiagnosticRespVKR": 32.0
+    }
+  },
+  {
+    "id": 123,
+    "desc": "VKR byte7 bit6",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000040",
+    "expected_signals": {
+      "DiagnosticRespVKR": 64.0
+    }
+  },
+  {
+    "id": 124,
+    "desc": "VKR byte7 bit7",
+    "frame_id": 1547,
+    "raw_hex": "0000000000000080",
+    "expected_signals": {
+      "DiagnosticRespVKR": 128.0
+    }
+  },
+  {
+    "id": 125,
+    "desc": "CalendarDay=1",
+    "frame_id": 1345,
+    "raw_hex": "0100000000000000",
+    "expected_signals": {
+      "CalendarDay": 1.0
+    }
+  },
+  {
+    "id": 126,
+    "desc": "CalendarDay=2",
+    "frame_id": 1345,
+    "raw_hex": "0200000000000000",
+    "expected_signals": {
+      "CalendarDay": 2.0
+    }
+  },
+  {
+    "id": 127,
+    "desc": "CalendarDay=4",
+    "frame_id": 1345,
+    "raw_hex": "0400000000000000",
+    "expected_signals": {
+      "CalendarDay": 4.0
+    }
+  },
+  {
+    "id": 128,
+    "desc": "CalendarDay=8",
+    "frame_id": 1345,
+    "raw_hex": "0800000000000000",
+    "expected_signals": {
+      "CalendarDay": 8.0
+    }
+  },
+  {
+    "id": 129,
+    "desc": "CalendarDay=16",
+    "frame_id": 1345,
+    "raw_hex": "1000000000000000",
+    "expected_signals": {
+      "CalendarDay": 16.0
+    }
+  },
+  {
+    "id": 130,
+    "desc": "CalendarMonth=1",
+    "frame_id": 1345,
+    "raw_hex": "2000000000000000",
+    "expected_signals": {
+      "CalendarMonth": 1.0
+    }
+  },
+  {
+    "id": 131,
+    "desc": "CalendarMonth=2",
+    "frame_id": 1345,
+    "raw_hex": "4000000000000000",
+    "expected_signals": {
+      "CalendarMonth": 2.0
+    }
+  },
+  {
+    "id": 132,
+    "desc": "CalendarMonth=4",
+    "frame_id": 1345,
+    "raw_hex": "8000000000000000",
+    "expected_signals": {
+      "CalendarMonth": 4.0
+    }
+  },
+  {
+    "id": 133,
+    "desc": "CalendarMonth=8",
+    "frame_id": 1345,
+    "raw_hex": "0001000000000000",
+    "expected_signals": {
+      "CalendarMonth": 8.0
+    }
+  },
+  {
+    "id": 134,
+    "desc": "CalendarYear=1",
+    "frame_id": 1345,
+    "raw_hex": "0002000000000000",
+    "expected_signals": {
+      "CalendarYear": 1.0
+    }
+  },
+  {
+    "id": 135,
+    "desc": "CalendarYear=2",
+    "frame_id": 1345,
+    "raw_hex": "0004000000000000",
+    "expected_signals": {
+      "CalendarYear": 2.0
+    }
+  },
+  {
+    "id": 136,
+    "desc": "CalendarYear=4",
+    "frame_id": 1345,
+    "raw_hex": "0008000000000000",
+    "expected_signals": {
+      "CalendarYear": 4.0
+    }
+  },
+  {
+    "id": 137,
+    "desc": "CalendarYear=8",
+    "frame_id": 1345,
+    "raw_hex": "0010000000000000",
+    "expected_signals": {
+      "CalendarYear": 8.0
+    }
+  },
+  {
+    "id": 138,
+    "desc": "CalendarYear=16",
+    "frame_id": 1345,
+    "raw_hex": "0020000000000000",
+    "expected_signals": {
+      "CalendarYear": 16.0
+    }
+  },
+  {
+    "id": 139,
+    "desc": "CalendarYear=32",
+    "frame_id": 1345,
+    "raw_hex": "0040000000000000",
+    "expected_signals": {
+      "CalendarYear": 32.0
+    }
+  },
+  {
+    "id": 140,
+    "desc": "CalendarYear=64",
+    "frame_id": 1345,
+    "raw_hex": "0080000000000000",
+    "expected_signals": {
+      "CalendarYear": 64.0
+    }
+  },
+  {
+    "id": 141,
+    "desc": "HourOfDay=1",
+    "frame_id": 1345,
+    "raw_hex": "0000010000000000",
+    "expected_signals": {
+      "HourOfDay": 1.0
+    }
+  },
+  {
+    "id": 142,
+    "desc": "HourOfDay=2",
+    "frame_id": 1345,
+    "raw_hex": "0000020000000000",
+    "expected_signals": {
+      "HourOfDay": 2.0
+    }
+  },
+  {
+    "id": 143,
+    "desc": "HourOfDay=4",
+    "frame_id": 1345,
+    "raw_hex": "0000040000000000",
+    "expected_signals": {
+      "HourOfDay": 4.0
+    }
+  },
+  {
+    "id": 144,
+    "desc": "HourOfDay=8",
+    "frame_id": 1345,
+    "raw_hex": "0000080000000000",
+    "expected_signals": {
+      "HourOfDay": 8.0
+    }
+  },
+  {
+    "id": 145,
+    "desc": "HourOfDay=16",
+    "frame_id": 1345,
+    "raw_hex": "0000100000000000",
+    "expected_signals": {
+      "HourOfDay": 16.0
+    }
+  },
+  {
+    "id": 146,
+    "desc": "MinuteOfHour=1",
+    "frame_id": 1345,
+    "raw_hex": "0000200000000000",
+    "expected_signals": {
+      "MinuteOfHour": 1.0
+    }
+  },
+  {
+    "id": 147,
+    "desc": "MinuteOfHour=2",
+    "frame_id": 1345,
+    "raw_hex": "0000400000000000",
+    "expected_signals": {
+      "MinuteOfHour": 2.0
+    }
+  },
+  {
+    "id": 148,
+    "desc": "MinuteOfHour=4",
+    "frame_id": 1345,
+    "raw_hex": "0000800000000000",
+    "expected_signals": {
+      "MinuteOfHour": 4.0
+    }
+  },
+  {
+    "id": 149,
+    "desc": "MinuteOfHour=8",
+    "frame_id": 1345,
+    "raw_hex": "0000000100000000",
+    "expected_signals": {
+      "MinuteOfHour": 8.0
+    }
+  },
+  {
+    "id": 150,
+    "desc": "MinuteOfHour=16",
+    "frame_id": 1345,
+    "raw_hex": "0000000200000000",
+    "expected_signals": {
+      "MinuteOfHour": 16.0
+    }
+  },
+  {
+    "id": 151,
+    "desc": "MinuteOfHour=32",
+    "frame_id": 1345,
+    "raw_hex": "0000000400000000",
+    "expected_signals": {
+      "MinuteOfHour": 32.0
+    }
+  },
+  {
+    "id": 152,
+    "desc": "SecsOfMinute=1",
+    "frame_id": 1345,
+    "raw_hex": "0000000800000000",
+    "expected_signals": {
+      "SecsOfMinute": 1.0
+    }
+  },
+  {
+    "id": 153,
+    "desc": "SecsOfMinute=2",
+    "frame_id": 1345,
+    "raw_hex": "0000001000000000",
+    "expected_signals": {
+      "SecsOfMinute": 2.0
+    }
+  },
+  {
+    "id": 154,
+    "desc": "SecsOfMinute=4",
+    "frame_id": 1345,
+    "raw_hex": "0000002000000000",
+    "expected_signals": {
+      "SecsOfMinute": 4.0
+    }
+  },
+  {
+    "id": 155,
+    "desc": "SecsOfMinute=8",
+    "frame_id": 1345,
+    "raw_hex": "0000004000000000",
+    "expected_signals": {
+      "SecsOfMinute": 8.0
+    }
+  },
+  {
+    "id": 156,
+    "desc": "SecsOfMinute=16",
+    "frame_id": 1345,
+    "raw_hex": "0000008000000000",
+    "expected_signals": {
+      "SecsOfMinute": 16.0
+    }
+  },
+  {
+    "id": 157,
+    "desc": "SecsOfMinute=32",
+    "frame_id": 1345,
+    "raw_hex": "0000000001000000",
+    "expected_signals": {
+      "SecsOfMinute": 32.0
+    }
+  },
+  {
+    "id": 158,
+    "desc": "Composite all maxed",
+    "frame_id": 1345,
+    "raw_hex": "FFFFFFFF00000000",
+    "expected_signals": {
+      "CalendarDay": 31.0,
+      "CalendarMonth": 15.0,
+      "CalendarYear": 127.0,
+      "HourOfDay": 31.0,
+      "IPK_200ms_PDU06_CRC": 255.0,
+      "MinuteOfHour": 63.0,
+      "SecsOfMinute": 31.0
+    }
+  },
+  {
+    "id": 159,
+    "desc": "CalendarDay=0",
+    "frame_id": 1345,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "CalendarDay": 0.0
+    }
+  },
+  {
+    "id": 160,
+    "desc": "CalendarMonth=0",
+    "frame_id": 1345,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "CalendarMonth": 0.0
+    }
+  },
+  {
+    "id": 161,
+    "desc": "CalendarYear=0",
+    "frame_id": 1345,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "CalendarYear": 0.0
+    }
+  },
+  {
+    "id": 162,
+    "desc": "HourOfDay=0",
+    "frame_id": 1345,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "HourOfDay": 0.0
+    }
+  },
+  {
+    "id": 163,
+    "desc": "MinuteOfHour=0",
+    "frame_id": 1345,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "MinuteOfHour": 0.0
+    }
+  },
+  {
+    "id": 164,
+    "desc": "SecsOfMinute=0",
+    "frame_id": 1345,
+    "raw_hex": "0000000000000000",
+    "expected_signals": {
+      "SecsOfMinute": 0.0
+    }
+  }
+]
