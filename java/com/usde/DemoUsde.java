@@ -1,83 +1,78 @@
 package com.usde;
 
 import com.sun.jna.Memory;
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
 /**
- * Demonstration: load a DBC file via JNA, decode a frame, and print results.
- *
- * <p>Prerequisites:
- * <ul>
- *   <li>usde.dll / libusde.so must be on java.library.path</li>
- *   <li>jna.jar must be on the classpath</li>
- * </ul>
- *
- * <p>Compile &amp; run (Windows):
- * <pre>
- *   javac -cp jna.jar java/com/usde/*.java
- *   java  -cp jna.jar;java -Djava.library.path=build/Release com.usde.DemoUsde
- * </pre>
+ * USDE Algorithm Verification via JNA — encode/decode round-trip.
  */
 public class DemoUsde {
+
+    static int pass = 0;
+    static int fail = 0;
+
+    static void check(String label, boolean condition) {
+        if (condition) {
+            pass++;
+            System.out.println("  PASS  " + label);
+        } else {
+            fail++;
+            System.out.println("  FAIL  " + label);
+        }
+    }
 
     public static void main(String[] args) {
         UsdeLibrary lib = UsdeLibrary.INSTANCE;
 
-        // 1. Create network
+        // 1. Create network and load DBC
         Pointer net = lib.USDE_CreateNetwork();
-        if (net == null) {
-            System.err.println("Failed to create network.");
-            return;
-        }
+        check("CreateNetwork", net != null);
 
-        // 2. Load DBC
         String dbcPath = args.length > 0 ? args[0] : "test_data/main.dbc";
         int rc = lib.USDE_LoadDBC(net, dbcPath);
-        System.out.println("LoadDBC(\"" + dbcPath + "\") = " + rc);
-        System.out.println("Frames loaded: " + lib.USDE_GetFrameCount(net));
+        check("LoadDBC succeeds", rc == 1);
+        check("Frame count > 0", lib.USDE_GetFrameCount(net) > 0);
 
-        if (rc == 0) {
-            System.err.println("DBC load failed — aborting.");
-            lib.USDE_DestroyNetwork(net);
-            return;
-        }
-
-        // 3. Prepare a fake raw CAN frame (8 bytes)
-        //    For demo purposes we'll use frame ID 0x345 (AMP_CFCAN_FrP01)
-        //    which has 1 signal: AMPWorkSta at bit=15, len=1, Motorola
-        int frameId = 0x345;
+        // 2. Decode frame 0x345 (AMPWorkSta, bit=15, len=1, Motorola)
+        System.out.println("\n--- Frame 0x345: AMPWorkSta ---");
         byte[] raw = new byte[8];
-        raw[0] = 0x00;
         raw[1] = (byte) 0x80; // bit 15 = 1
 
         Pointer rawPtr = new Memory(raw.length);
         rawPtr.write(0, raw, 0, raw.length);
 
-        // 4. Decode
-        int maxSignals = 64;
+        int maxSig = 64;
         UsdeLibrary.C_DecodedSignal[] outArr =
                 (UsdeLibrary.C_DecodedSignal[]) new UsdeLibrary.C_DecodedSignal()
-                        .toArray(maxSignals);
-
+                        .toArray(maxSig);
         int[] outCount = new int[1];
-        int decRc = lib.USDE_DecodeFrame(net, frameId,
-                rawPtr, raw.length,
-                outArr, maxSignals, outCount);
 
-        System.out.println("\nDecodeFrame(0x" + Integer.toHexString(frameId) + ") = " + decRc);
-        System.out.println("Signals decoded: " + outCount[0]);
+        int decRc = lib.USDE_DecodeFrame(net, 0x345,
+                rawPtr, raw.length, outArr, maxSig, outCount);
+        check("DecodeFrame returns 1", decRc == 1);
+        check("Decoded 1 signal", outCount[0] == 1);
 
-        for (int i = 0; i < outCount[0]; i++) {
-            outArr[i].read();
-            System.out.printf("  %s = %.4f %s%n",
-                    outArr[i].getNameString(),
-                    outArr[i].physicalValue,
-                    outArr[i].getUnitString());
-        }
+        outArr[0].read();
+        check("Signal name = AMPWorkSta",
+                "AMPWorkSta".equals(outArr[0].getNameString()));
+        check("Value = 1.0", outArr[0].physicalValue == 1.0);
 
-        // 5. Cleanup
+        // 3. Decode with bit clear
+        byte[] rawClear = new byte[8];
+        Pointer rawClearPtr = new Memory(rawClear.length);
+        rawClearPtr.write(0, rawClear, 0, rawClear.length);
+
+        lib.USDE_DecodeFrame(net, 0x345,
+                rawClearPtr, rawClear.length, outArr, maxSig, outCount);
+        outArr[0].read();
+        check("Bit clear -> value = 0.0", outArr[0].physicalValue == 0.0);
+
+        // 4. Cleanup
         lib.USDE_DestroyNetwork(net);
-        System.out.println("\nNetwork destroyed. Done.");
+        check("DestroyNetwork (no crash)", true);
+
+        // Summary
+        System.out.printf("%n  Results: %d PASS, %d FAIL%n", pass, fail);
+        if (fail > 0) System.exit(1);
     }
 }

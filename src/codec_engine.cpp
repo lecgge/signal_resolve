@@ -61,12 +61,11 @@ uint64_t CodecEngine::ExtractBits(
         // DBC: bit 0 = byte0.MSB, bit 7 = byte0.LSB, bit 8 = byte1.MSB...
         //   MSB byte = (start_bit + bit_length - 1) / 8  (higher index)
         //   LSB byte = start_bit / 8  (lower index)
-        //   msb_in_byte = (start_bit + bit_length - 1) % 8
-        //   lsb_in_byte = 7 - (start_bit % 8)
+        //   lsb_in_byte = start_bit % 8
         //
         uint32_t msb_byte     = (start_bit + bit_length - 1) / 8;
         uint32_t lsb_byte     = start_bit / 8;
-        uint32_t lsb_in_byte  = 7 - (start_bit % 8);
+        uint32_t lsb_in_byte  = start_bit % 8;
 
         if (msb_byte >= size) return 0;
 
@@ -137,18 +136,19 @@ void CodecEngine::PackBits(
         //   MSB byte = (start_bit + bit_length - 1) / 8  (higher index)
         //   LSB byte = start_bit / 8  (lower index)
         //   msb_in_byte = (start_bit + bit_length - 1) % 8
-        //   lsb_in_byte = 7 - (start_bit % 8)
+        //   lsb_in_byte = start_bit % 8
         //
         uint32_t msb_byte     = (start_bit + bit_length - 1) / 8;
         uint32_t lsb_byte     = start_bit / 8;
         uint32_t msb_in_byte  = (start_bit + bit_length - 1) % 8;
-        uint32_t lsb_in_byte  = 7 - (start_bit % 8);
+        uint32_t lsb_in_byte  = start_bit % 8;
 
-        uint64_t val_shifted = raw_value << lsb_in_byte;
+        // Place value so that byte lsb_byte contains the LSB of the value
+        // at bit lsb_in_byte, matching ExtractBits' assembly order.
+        uint64_t val_shifted = raw_value << (lsb_byte * 8 + lsb_in_byte);
 
         for (uint32_t bi = lsb_byte; bi <= msb_byte && bi < size; ++bi) {
-            uint32_t byte_idx = bi - lsb_byte;
-            uint8_t  new_byte = static_cast<uint8_t>(val_shifted >> (byte_idx * 8));
+            uint8_t new_byte = static_cast<uint8_t>(val_shifted >> (bi * 8));
 
             uint8_t sig_mask = 0xFF;
             if (bi == msb_byte) {

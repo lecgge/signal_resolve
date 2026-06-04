@@ -95,6 +95,11 @@ inline bool ParseSgLine(std::string_view line, Signal& sig) {
     // Skip "SG_ "
     line.remove_prefix(3);
 
+    // Skip leading whitespace after SG_
+    auto first_non_ws = line.find_first_not_of(" \t");
+    if (first_non_ws == std::string_view::npos) return false;
+    line.remove_prefix(first_non_ws);
+
     // ── 1. Multiplexer flag (optional single 'M' or 'm' followed by space) ──
     if (!line.empty() && (line[0] == 'M' || line[0] == 'm') &&
         line.size() > 1 && line[1] == ' ') {
