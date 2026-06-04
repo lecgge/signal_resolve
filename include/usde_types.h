@@ -22,8 +22,9 @@ struct Signal {
     double min_value     = 0.0;
     double max_value     = 0.0;
     std::string unit;
-    bool     is_multiplexed = false;
-    uint32_t mux_value      = 0;
+    bool     is_multiplexed  = false;
+    uint32_t mux_value       = 0;
+    bool     is_mux_decoder  = false; // MUX selector signal (M flag)
 };
 
 struct Frame {

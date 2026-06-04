@@ -9,6 +9,7 @@ add_executable(usde_demo
     src/dbc_parser.cpp
     src/ldf_parser.cpp
     src/arxml_parser.cpp
+    src/codec_engine.cpp
 )
 
 target_include_directories(usde_demo PRIVATE include)
