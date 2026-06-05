@@ -1,29 +1,28 @@
 #!/usr/bin/env python3
-"""USDE Python demo — load a DBC, decode a frame in one line."""
+"""USDE Python demo — show high-level API usage."""
 
-import usde_python
+from usde import Network
 
-# 1. Create network and load DBC
-net = usde_python.Network()
+# 1. Load a DBC database
+net = Network(name="CFCAN")
 ok = net.load_dbc("test_data/main.dbc")
-print(f"load_dbc: {ok}, frames: {net.frame_count()}")
+print(f"Loaded main.dbc: {ok}, frames: {net.frame_count}")
 
-# 2. Show frame info
+# 2. Inspect a frame
 frame_id = 0x345  # AMP_CFCAN_FrP01
 info = net.frame_info(frame_id)
-print(f"\nFrame 0x{frame_id:X}: {info['name']}, DLC={info['dlc']}, "
-      f"signals={len(info['signals'])}")
-for s in info["signals"]:
-    print(f"  {s['name']}: bit={s['start_bit']}, len={s['bit_length']}, "
-          f"{s['byte_order']}, factor={s['factor']}, offset={s['offset']}")
+print(f"\n{info}")
+for sig in info.signals:
+    print(f"  {sig}")
 
-# 3. Decode — one line
-raw = list(bytes([0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+# 3. Decode raw CAN bytes — one line
+raw = [0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 decoded = net.decode_frame(frame_id, raw)
-print(f"\nDecode frame 0x{frame_id:X}:")
+print(f"\nDecoded 0x{frame_id:X}:")
 for sig in decoded:
-    print(f"  {sig['name']} = {sig['value']} {sig['unit']}")
+    print(f"  {sig}")
 
-# 4. Encode round-trip
+# 4. Encode — one line
 encoded = net.encode_frame(frame_id, {"AMPWorkSta": 1.0})
-print(f"\nEncode frame 0x{frame_id:X}: {' '.join(f'{b:02X}' for b in encoded)}")
+hex_str = " ".join(f"{b:02X}" for b in encoded)
+print(f"\nEncoded AMPWorkSta=1: {hex_str}")

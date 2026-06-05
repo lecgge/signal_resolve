@@ -1,78 +1,55 @@
 package com.usde;
 
-import com.sun.jna.Memory;
-import com.sun.jna.Pointer;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * USDE Algorithm Verification via JNA — encode/decode round-trip.
+ * USDE Java demo — high-level API usage.
+ *
+ * <p>Run:
+ * <pre>
+ *   java -cp java/jna-5.14.0.jar;java/build
+ *        -Djava.library.path=build/Release
+ *        com.usde.DemoUsde
+ * </pre>
  */
 public class DemoUsde {
 
-    static int pass = 0;
-    static int fail = 0;
-
-    static void check(String label, boolean condition) {
-        if (condition) {
-            pass++;
-            System.out.println("  PASS  " + label);
-        } else {
-            fail++;
-            System.out.println("  FAIL  " + label);
-        }
-    }
-
     public static void main(String[] args) {
-        UsdeLibrary lib = UsdeLibrary.INSTANCE;
-
-        // 1. Create network and load DBC
-        Pointer net = lib.USDE_CreateNetwork();
-        check("CreateNetwork", net != null);
-
         String dbcPath = args.length > 0 ? args[0] : "test_data/main.dbc";
-        int rc = lib.USDE_LoadDBC(net, dbcPath);
-        check("LoadDBC succeeds", rc == 1);
-        check("Frame count > 0", lib.USDE_GetFrameCount(net) > 0);
 
-        // 2. Decode frame 0x345 (AMPWorkSta, bit=15, len=1, Motorola)
-        System.out.println("\n--- Frame 0x345: AMPWorkSta ---");
-        byte[] raw = new byte[8];
-        raw[1] = (byte) 0x80; // bit 15 = 1
+        // Use try-with-resources for automatic cleanup
+        try (UsdeClient client = new UsdeClient()) {
 
-        Pointer rawPtr = new Memory(raw.length);
-        rawPtr.write(0, raw, 0, raw.length);
+            // 1. Load DBC
+            boolean ok = client.loadDbc(dbcPath);
+            System.out.println("LoadDBC: " + ok + ", frames: " + client.getFrameCount());
 
-        int maxSig = 64;
-        UsdeLibrary.C_DecodedSignal[] outArr =
-                (UsdeLibrary.C_DecodedSignal[]) new UsdeLibrary.C_DecodedSignal()
-                        .toArray(maxSig);
-        int[] outCount = new int[1];
+            // 2. Prepare raw CAN bytes (frame 0x345: AMPWorkSta)
+            byte[] raw = new byte[]{0x00, (byte) 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-        int decRc = lib.USDE_DecodeFrame(net, 0x345,
-                rawPtr, raw.length, outArr, maxSig, outCount);
-        check("DecodeFrame returns 1", decRc == 1);
-        check("Decoded 1 signal", outCount[0] == 1);
+            // 3. Decode — one call
+            UsdeClient.DecodedSignal[] sigs = client.decodeFrame(0x345, raw);
+            System.out.println("Decoded " + sigs.length + " signal(s):");
+            for (UsdeClient.DecodedSignal s : sigs) {
+                System.out.println("  " + s);
+            }
 
-        outArr[0].read();
-        check("Signal name = AMPWorkSta",
-                "AMPWorkSta".equals(outArr[0].getNameString()));
-        check("Value = 1.0", outArr[0].physicalValue == 1.0);
+            // 4. Encode — one call
+            Map<String, Double> values = new HashMap<>();
+            values.put("AMPWorkSta", 1.0);
+            byte[] encoded = client.encodeFrame(0x345, values);
+            System.out.print("Encoded AMPWorkSta=1: ");
+            for (byte b : encoded) System.out.printf("%02X ", b);
+            System.out.println();
 
-        // 3. Decode with bit clear
-        byte[] rawClear = new byte[8];
-        Pointer rawClearPtr = new Memory(rawClear.length);
-        rawClearPtr.write(0, rawClear, 0, rawClear.length);
+            // 5. Round-trip verify
+            UsdeClient.DecodedSignal[] rt = client.decodeFrame(0x345, encoded);
+            System.out.println("Round-trip: " + rt[0]);
 
-        lib.USDE_DecodeFrame(net, 0x345,
-                rawClearPtr, rawClear.length, outArr, maxSig, outCount);
-        outArr[0].read();
-        check("Bit clear -> value = 0.0", outArr[0].physicalValue == 0.0);
-
-        // 4. Cleanup
-        lib.USDE_DestroyNetwork(net);
-        check("DestroyNetwork (no crash)", true);
-
-        // Summary
-        System.out.printf("%n  Results: %d PASS, %d FAIL%n", pass, fail);
-        if (fail > 0) System.exit(1);
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

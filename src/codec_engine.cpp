@@ -82,12 +82,11 @@ uint64_t CodecEngine::ExtractBits(
         }
 
         // Shift right to align LSB to bit 0
-        // For Motorola-within-byte: LSB is at absolute bit position
-        // (first_byte * 8 + lsb_in_byte). In the big-endian assembled value
-        // byte[first_byte] is at MSB, so LSB is at bit position:
-        //   lsb_in_byte  (when first_byte == last_byte)
-        //   first_byte*8 + lsb_in_byte  (multi-byte)
-        uint32_t shift = static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
+        // Single-byte: shift within the byte = start_bit % 8
+        // Multi-byte:  shift = first_byte*8 + lsb_in_byte
+        uint32_t shift = (first_byte == last_byte)
+            ? (start_bit % 8)
+            : (static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte);
         val >>= shift;
 
         uint64_t mask = (bit_length == 64) ? ~uint64_t(0)
@@ -150,16 +149,13 @@ void CodecEngine::PackBits(
         uint32_t first_byte   = start_bit / 8;
         uint32_t lsb_in_byte  = 7 - (start_bit % 8);
         uint32_t last_byte    = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8;
-        uint32_t abs_msb      = first_byte * 8 + lsb_in_byte + bit_length - 1;
-        uint32_t msb_in_byte  = abs_msb - last_byte * 8;
+        int32_t  msb_in_byte  = static_cast<int32_t>(start_bit + bit_length - 1) % 8;
 
         if (last_byte >= size) return;
 
-        // Place value at correct position in big-endian layout
-        // Iterate descending (last_byte → first_byte) so byte[last_byte]
-        // contains the LSB, matching ExtractBits' ascending assembly
-        // where byte[first_byte] is the MSB.
-        uint32_t shift = static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
+        uint32_t shift = (first_byte == last_byte)
+            ? (start_bit % 8)
+            : (static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte);
 
         for (uint32_t bi = last_byte; bi >= first_byte && bi < size; --bi) {
             // This byte covers bits [(last_byte-bi)*8  .. (last_byte-bi)*8+7]
