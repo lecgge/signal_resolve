@@ -226,50 +226,67 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
     std::vector<DecodedSignal> results;
     if (!raw_bytes || size == 0) return results;
 
-    // ── Step 1: Find MUX selector value ─────────────────────────────────
+    // ── Step 0: PDU header_id routing ────────────────────────────────────
+    // If frame has PDUs with non-zero header_id, read 3-byte header_id +
+    // 1-byte length from raw data, then only decode the matching PDU.
+    bool     has_pdu_routing = false;
+    uint32_t active_header_id = 0;
+    for (const auto& pdu : frame.pdus) {
+        if (pdu.header_id != 0) { has_pdu_routing = true; break; }
+    }
+    if (has_pdu_routing && size >= 4) {
+        active_header_id = (static_cast<uint32_t>(raw_bytes[0]) << 16)
+                         | (static_cast<uint32_t>(raw_bytes[1]) << 8)
+                         |  static_cast<uint32_t>(raw_bytes[2]);
+        // byte 3 = PDU length (informational, not used for decoding)
+    }
+
+    // ── Step 1: MUX selector ───────────────────────────────────────────
     uint32_t mux_selector_value = 0;
     bool     has_mux = false;
-
     for (const auto& sig : frame.signals) {
         if (sig.is_mux_decoder) {
             mux_selector_value = static_cast<uint32_t>(
-                ExtractBits(raw_bytes, size,
-                            sig.start_bit, sig.bit_length, sig.byte_order));
-            has_mux = true;
-            break;
+                ExtractBits(raw_bytes, size, sig.start_bit, sig.bit_length, sig.byte_order));
+            has_mux = true; break;
         }
     }
 
-    // ── Step 2: Decode signals with MUX routing ─────────────────────────
+    // ── Step 2: Decode ─────────────────────────────────────────────────
     for (const auto& sig : frame.signals) {
-        // MUX router: skip decoder signal itself, and skip mux-controlled
-        // signals whose mux_value doesn't match the selector
         if (sig.is_mux_decoder) continue;
-        if (sig.is_multiplexed && has_mux && sig.mux_value != mux_selector_value)
-            continue;
+        if (sig.is_multiplexed && has_mux && sig.mux_value != mux_selector_value) continue;
 
-        uint64_t raw = ExtractBits(raw_bytes, size,
-                                   sig.start_bit, sig.bit_length, sig.byte_order);
+        bool skip = false;
+        uint32_t effective_start = sig.start_bit;
 
-        // Sign-extend if the signal uses signed representation
-        if (sig.is_signed && sig.bit_length < 64) {
-            uint64_t sign_bit = 1ULL << (sig.bit_length - 1);
-            if (raw & sign_bit)
-                raw |= ~((1ULL << sig.bit_length) - 1);
+        if (has_pdu_routing) {
+            for (const auto& pdu : frame.pdus) {
+                if (pdu.header_id == 0) continue;
+                for (const auto& ps : pdu.signals) {
+                    if (ps.name == sig.name) {
+                        if (active_header_id != 0 && pdu.header_id != active_header_id)
+                            skip = true;
+                        effective_start = sig.start_bit + 32;
+                        goto found_pdu;
+                    }
+                }
+            }
+            found_pdu:;
         }
 
-        double physical = RawToPhysical(raw, sig.factor, sig.offset,
-                                        sig.is_signed);
+        if (skip) continue;
 
-        // Clamp to signal range
+        uint64_t raw = ExtractBits(raw_bytes, size,
+                                   effective_start, sig.bit_length, sig.byte_order);
+        if (sig.is_signed && sig.bit_length < 64) {
+            uint64_t sign_bit = 1ULL << (sig.bit_length - 1);
+            if (raw & sign_bit) raw |= ~((1ULL << sig.bit_length) - 1);
+        }
+        double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
         if (sig.max_value > sig.min_value)
             physical = std::clamp(physical, sig.min_value, sig.max_value);
-
-        DecodedSignal ds;
-        ds.name           = sig.name;
-        ds.physical_value = physical;
-        ds.unit           = sig.unit;
-        results.push_back(std::move(ds));
+        results.push_back({sig.name, physical, sig.unit});
     }
 
     return results;
@@ -285,57 +302,57 @@ bool CodecEngine::EncodeFrame(
     uint8_t* out_bytes, size_t max_size)
 {
     if (!out_bytes || max_size == 0) return false;
-
     std::memset(out_bytes, 0, max_size);
 
-    uint32_t mux_selector_value = 0;
-    bool     has_mux = false;
-
-    for (const auto& sig : frame.signals) {
-        if (!sig.is_mux_decoder) continue;
-
-        auto it = signals_to_encode.find(sig.name);
-        if (it != signals_to_encode.end()) {
-            double physical = it->second;
-            if (sig.max_value > sig.min_value)
-                physical = std::clamp(physical, sig.min_value, sig.max_value);
-
-            uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset,
-                                          sig.is_signed, sig.bit_length);
-            if (!sig.is_signed && sig.bit_length < 64) {
-                uint64_t max_val = (1ULL << sig.bit_length) - 1;
-                if (raw > max_val) raw = max_val;
+    // ── Step 0: PDU header ──────────────────────────────────────────────
+    for (const auto& pdu : frame.pdus) {
+        if (pdu.header_id == 0) continue;
+        for (const auto& ps : pdu.signals) {
+            if (signals_to_encode.count(ps.name)) {
+                out_bytes[0] = (pdu.header_id >> 16) & 0xFF;
+                out_bytes[1] = (pdu.header_id >> 8) & 0xFF;
+                out_bytes[2] = pdu.header_id & 0xFF;
+                out_bytes[3] = pdu.byte_length & 0xFF;
+                goto header_done;
             }
-            PackBits(out_bytes, max_size,
-                     sig.start_bit, sig.bit_length, sig.byte_order, raw);
-            mux_selector_value = static_cast<uint32_t>(raw);
         }
-        has_mux = true;
-        break;
+    }
+    header_done:
+
+    // ── Step 1: MUX ─────────────────────────────────────────────────────
+    uint32_t mux_sel = 0; bool hm = false;
+    for (const auto& s : frame.signals) {
+        if (!s.is_mux_decoder) continue;
+        auto it = signals_to_encode.find(s.name);
+        if (it != signals_to_encode.end()) {
+            double p = it->second; if (s.max_value > s.min_value) p = std::clamp(p, s.min_value, s.max_value);
+            uint64_t r = PhysicalToRaw(p, s.factor, s.offset, s.is_signed, s.bit_length);
+            if (!s.is_signed && s.bit_length < 64) { uint64_t m = (1ULL<<s.bit_length)-1; if(r>m) r=m; }
+            PackBits(out_bytes, max_size, s.start_bit, s.bit_length, s.byte_order, r);
+            mux_sel = static_cast<uint32_t>(r);
+        }
+        hm = true; break;
     }
 
-    for (const auto& sig : frame.signals) {
-        if (sig.is_mux_decoder) continue;
-        if (sig.is_multiplexed && has_mux && sig.mux_value != mux_selector_value)
-            continue;
-
-        auto it = signals_to_encode.find(sig.name);
+    // ── Step 2: Encode ──────────────────────────────────────────────────
+    for (const auto& s : frame.signals) {
+        if (s.is_mux_decoder) continue;
+        if (s.is_multiplexed && hm && s.mux_value != mux_sel) continue;
+        auto it = signals_to_encode.find(s.name);
         if (it == signals_to_encode.end()) continue;
+        double p = it->second; if (s.max_value > s.min_value) p = std::clamp(p, s.min_value, s.max_value);
+        uint64_t r = PhysicalToRaw(p, s.factor, s.offset, s.is_signed, s.bit_length);
+        if (!s.is_signed && s.bit_length < 64) { uint64_t m = (1ULL<<s.bit_length)-1; if(r>m) r=m; }
 
-        double physical = it->second;
-        if (sig.max_value > sig.min_value)
-            physical = std::clamp(physical, sig.min_value, sig.max_value);
-
-        uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset,
-                                      sig.is_signed, sig.bit_length);
-        if (!sig.is_signed && sig.bit_length < 64) {
-            uint64_t max_val = (1ULL << sig.bit_length) - 1;
-            if (raw > max_val) raw = max_val;
+        uint32_t eff = s.start_bit;
+        for (const auto& pd : frame.pdus) {
+            if (pd.header_id == 0) continue;
+            for (const auto& ps : pd.signals)
+                if (ps.name == s.name) { eff = s.start_bit + 32; goto eoff; }
         }
-        PackBits(out_bytes, max_size,
-                 sig.start_bit, sig.bit_length, sig.byte_order, raw);
+        eoff:;
+        PackBits(out_bytes, max_size, eff, s.bit_length, s.byte_order, r);
     }
-
     return true;
 }
 

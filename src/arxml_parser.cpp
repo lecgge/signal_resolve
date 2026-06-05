@@ -101,7 +101,6 @@ bool LoadARXML(const std::filesystem::path& file_path,
     // ── 2. Extract PDU definitions (name, length, signal mappings) ──────
     struct PduDef {
         std::string name;
-        std::string uuid;
         uint32_t    header_id   = 0;
         uint32_t    byte_length = 0;
     };
@@ -127,23 +126,12 @@ bool LoadARXML(const std::filesystem::path& file_path,
 
             PduDef pd;
             pd.name = pdu_name;
-            auto gt = xml.find('>', open);
-            if (gt != std::string::npos) {
-                std::string tag_line = xml.substr(open, gt - open + 1);
-                auto upos = tag_line.find("UUID=\"");
-                if (upos != std::string::npos) {
-                    upos += 6;  // skip UUID="
-                    auto uend = tag_line.find('"', upos);
-                    if (uend != std::string::npos)
-                        pd.uuid = tag_line.substr(upos, uend - upos);
-                }
-            }
-            auto plen = ExtractTagContent(xml, "LENGTH", open);
-            if (!plen.empty())
-                pd.byte_length = static_cast<uint32_t>(std::stoul(plen));
             auto hid = ExtractTagContent(xml, "HEADER-ID-SHORT-HEADER", open);
             if (!hid.empty())
                 pd.header_id = static_cast<uint32_t>(std::stoul(hid));
+            auto plen = ExtractTagContent(xml, "LENGTH", open);
+            if (!plen.empty())
+                pd.byte_length = static_cast<uint32_t>(std::stoul(plen));
             pdu_defs[pdu_name] = pd;
 
             size_t mpos = open;
@@ -294,7 +282,6 @@ bool LoadARXML(const std::filesystem::path& file_path,
         auto pi = pdu_defs.find(pdu_name);
         if (pi != pdu_defs.end()) {
             pdu.byte_length = pi->second.byte_length;
-            pdu.uuid        = pi->second.uuid;
             pdu.header_id   = pi->second.header_id;
         }
         auto psp = pdu_start_pos.find(pdu_name);

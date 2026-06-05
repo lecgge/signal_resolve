@@ -115,7 +115,6 @@ public:
         for (auto& p : f.pdus) {
             py::dict pd;
             pd["name"] = p.name;
-            pd["uuid"] = p.uuid;
             pd["header_id"] = p.header_id;
             pd["byte_length"] = p.byte_length;
             pd["start_position"] = p.start_position;

@@ -30,7 +30,6 @@ struct Signal {
 
 struct Pdu {
     std::string name;
-    std::string uuid;
     uint32_t    header_id      = 0;  // <HEADER-ID-SHORT-HEADER>
     uint32_t    byte_length    = 0;
     uint32_t    start_position = 0;
