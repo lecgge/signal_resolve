@@ -123,16 +123,18 @@ class SignalInfo:
                 f"len={self.bit_length}, {self.byte_order})")
 
 class FrameInfo:
-    """Metadata for one frame."""
-    __slots__ = ("id", "name", "dlc", "signals")
+    """Metadata for one frame, including PDU hierarchy (ARXML)."""
+    __slots__ = ("id", "name", "dlc", "signals", "pdus")
     def __init__(self, d, signals):
         self.id      = d["id"]
         self.name    = d["name"]
         self.dlc     = d["dlc"]
         self.signals = signals
+        self.pdus    = d.get("pdus", [])
     def __repr__(self):
+        pdu_info = f", {len(self.pdus)} PDUs" if self.pdus else ""
         return (f"FrameInfo(0x{self.id:X}, {self.name}, "
-                f"DLC={self.dlc}, {len(self.signals)} signals)")
+                f"DLC={self.dlc}, {len(self.signals)} signals{pdu_info})")
 
 class Network:
     """USDE signal network loaded from a database file.
@@ -170,6 +172,13 @@ class Network:
         d = self._net.frame_info(frame_id)
         sigs = [SignalInfo(s) for s in d["signals"]]
         return FrameInfo(d, sigs)
+
+    def clusters(self):
+        """Get list of cluster dicts (ARXML only)."""
+        try:
+            return self._net.clusters()
+        except Exception:
+            return []
 
     def frame_ids(self):
         """Return list of all loaded frame IDs."""

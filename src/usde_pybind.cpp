@@ -101,7 +101,7 @@ public:
             sd["start_bit"]  = s.start_bit;
             sd["bit_length"] = s.bit_length;
             sd["byte_order"] = (s.byte_order == usde::ByteOrder::INTEL)
-                                   ? "Intel" : "Motorola";
+                                    ? "Intel" : "Motorola";
             sd["factor"]     = s.factor;
             sd["offset"]     = s.offset;
             sd["min_value"]  = s.min_value;
@@ -110,7 +110,43 @@ public:
             sigs.append(sd);
         }
         d["signals"] = sigs;
+
+        py::list pdu_list;
+        for (auto& p : f.pdus) {
+            py::dict pd;
+            pd["name"] = p.name;
+            pd["byte_length"] = p.byte_length;
+            py::list psigs;
+            for (auto& s : p.signals) {
+                py::dict sd;
+                sd["name"]       = s.name;
+                sd["start_bit"]  = s.start_bit;
+                sd["bit_length"] = s.bit_length;
+                sd["byte_order"] = (s.byte_order == usde::ByteOrder::INTEL)
+                                        ? "Intel" : "Motorola";
+                psigs.append(sd);
+            }
+            pd["signals"] = psigs;
+            pdu_list.append(pd);
+        }
+        d["pdus"] = pdu_list;
         return d;
+    }
+
+    py::list cluster_list() const {
+        py::list result;
+        for (auto& [name, cl] : cluster.clusters) {
+            py::dict cd;
+            cd["name"]     = cl.name;
+            cd["bus_type"] = cl.bus_type;
+            cd["baudrate"] = cl.baudrate;
+            cd["can_fd"]   = cl.can_fd;
+            py::list fids;
+            for (auto& [fid, _] : cl.frames) fids.append(fid);
+            cd["frame_ids"] = fids;
+            result.append(cd);
+        }
+        return result;
     }
 };
 
@@ -140,5 +176,7 @@ PYBIND11_MODULE(usde_python, m) {
              "Encode a frame from a {name: value} dict. Returns bytes.")
         .def("frame_info", &PyNetwork::frame_info,
              py::arg("frame_id"),
-             "Get frame metadata (id, name, dlc, signals).");
+             "Get frame metadata (id, name, dlc, signals, pdus, clusters).")
+        .def("clusters", &PyNetwork::cluster_list,
+             "Get list of cluster dicts [{name, bus_type, baudrate, can_fd, frame_ids}].");
 }

@@ -24,20 +24,39 @@ struct Signal {
     std::string unit;
     bool     is_multiplexed  = false;
     uint32_t mux_value       = 0;
-    bool     is_mux_decoder  = false; // MUX selector signal (M flag)
-    bool     is_signed       = false; // @0- or @1- in DBC
+    bool     is_mux_decoder  = false;
+    bool     is_signed       = false;
+};
+
+struct Pdu {
+    std::string name;
+    uint32_t    byte_length = 0;
+    std::vector<Signal> signals;
 };
 
 struct Frame {
-    uint32_t id   = 0;   // CAN ID / LIN PID
-    uint32_t dlc  = 0;   // Data Length Code (bytes)
+    uint32_t id   = 0;
+    uint32_t dlc  = 0;
     std::string name;
-    std::vector<Signal> signals;
+    std::vector<Signal> signals;   // codec uses this (from DBC/LDF or flattened PDU)
+    std::vector<Pdu>    pdus;      // PDU hierarchy (ARXML only)
+};
+
+struct Cluster {
+    std::string name;
+    std::string bus_type;          // "CAN", "CAN-FD", "LIN"
+    uint32_t    baudrate = 0;
+    bool        can_fd    = false;
+    std::unordered_map<uint32_t, Frame> frames;
 };
 
 struct NetworkCluster {
     std::string name;
-    std::unordered_map<uint32_t, Frame> frames;   // Key: Frame ID
+    std::string bus_type;
+    uint32_t    baudrate = 0;
+    bool        can_fd   = false;
+    std::unordered_map<uint32_t, Frame> frames;           // Key: Frame ID
+    std::unordered_map<std::string, Cluster> clusters;    // ARXML only
 };
 
 } // namespace usde
