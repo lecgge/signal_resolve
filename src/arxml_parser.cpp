@@ -26,21 +26,28 @@ inline std::string PathBaseName(std::string_view path) {
 
 static std::string ExtractTagContent(const std::string& xml,
                                      const std::string& tag,
-                                     size_t start = 0) {
+                                     size_t start, size_t end) {
     std::string open = "<" + tag;
     auto o1 = xml.find(open, start);
-    if (o1 == std::string::npos) return {};
+    if (o1 == std::string::npos || o1 >= end) return {};
     auto gt = xml.find('>', o1 + open.size());
-    if (gt == std::string::npos) return {};
+    if (gt == std::string::npos || gt >= end) return {};
     if (xml[gt - 1] == '/') return {};
     std::string close = "</" + tag + ">";
     auto c1 = xml.find(close, gt + 1);
-    if (c1 == std::string::npos) return {};
+    if (c1 == std::string::npos || c1 >= end) return {};
     auto a = xml.find_first_not_of(" \t\r\n", gt + 1);
     if (a == std::string::npos || a >= c1) return {};
     auto b = xml.find_last_not_of(" \t\r\n", c1 - 1);
     if (b == std::string::npos || b < a) return {};
     return xml.substr(a, b - a + 1);
+}
+
+// Unbounded overload (for top-level searches)
+static std::string ExtractTagContent(const std::string& xml,
+                                     const std::string& tag,
+                                     size_t start = 0) {
+    return ExtractTagContent(xml, tag, start, std::string::npos);
 }
 
 static size_t FindOpenTag(const std::string& xml,
@@ -86,11 +93,11 @@ bool LoadARXML(const std::filesystem::path& file_path,
             auto open = FindOpenTag(xml, "I-SIGNAL", pos);
             if (open == std::string::npos) break;
             auto close = FindCloseTag(xml, "I-SIGNAL", open);
-            auto name = ExtractTagContent(xml, "SHORT-NAME", open);
+            auto name = ExtractTagContent(xml, "SHORT-NAME", open, close);
             if (!name.empty()) {
                 auto name_pos = xml.find("<SHORT-NAME>", open);
                 if (name_pos != std::string::npos && name_pos < close) {
-                    auto len = ExtractTagContent(xml, "LENGTH", open);
+                    auto len = ExtractTagContent(xml, "LENGTH", open, close);
                     if (!len.empty())
                         signal_lengths[name] = static_cast<uint32_t>(std::stoul(len));
                 }
@@ -122,15 +129,15 @@ bool LoadARXML(const std::filesystem::path& file_path,
             if (open == std::string::npos) break;
             auto close = FindCloseTag(xml, pdu_tag, open);
 
-            auto pdu_name = ExtractTagContent(xml, "SHORT-NAME", open);
+            auto pdu_name = ExtractTagContent(xml, "SHORT-NAME", open, close);
             if (pdu_name.empty() || pdu_name.size() > 200) { pos = close; continue; }
 
             PduDef pd;
             pd.name = pdu_name;
-            auto hid = ExtractTagContent(xml, "HEADER-ID-SHORT-HEADER", open);
+            auto hid = ExtractTagContent(xml, "HEADER-ID-SHORT-HEADER", open, close);
             if (!hid.empty())
                 pd.header_id = static_cast<uint32_t>(std::stoul(hid));
-            auto plen = ExtractTagContent(xml, "LENGTH", open);
+            auto plen = ExtractTagContent(xml, "LENGTH", open, close);
             if (!plen.empty())
                 pd.byte_length = static_cast<uint32_t>(std::stoul(plen));
             pdu_defs[pdu_name] = pd;
@@ -143,11 +150,11 @@ bool LoadARXML(const std::filesystem::path& file_path,
 
                 MappingEntry me;
                 me.pdu_name = pdu_name;
-                auto sr = ExtractTagContent(xml, "I-SIGNAL-REF", mopen);
+                auto sr = ExtractTagContent(xml, "I-SIGNAL-REF", mopen, mclose);
                 if (!sr.empty()) me.signal_name = PathBaseName(sr);
-                auto sp = ExtractTagContent(xml, "START-POSITION", mopen);
+                auto sp = ExtractTagContent(xml, "START-POSITION", mopen, mclose);
                 if (!sp.empty()) me.start_pos = static_cast<uint32_t>(std::stoul(sp));
-                auto bo = ExtractTagContent(xml, "PACKING-BYTE-ORDER", mopen);
+                auto bo = ExtractTagContent(xml, "PACKING-BYTE-ORDER", mopen, mclose);
                 if (!bo.empty())
                     me.byte_order = (bo.find("FIRST") != std::string::npos)
                                         ? ByteOrder::MOTOROLA : ByteOrder::INTEL;
@@ -172,8 +179,8 @@ bool LoadARXML(const std::filesystem::path& file_path,
             auto open = FindOpenTag(xml, "PDU-TRIGGERING", pos);
             if (open == std::string::npos) break;
             auto close = FindCloseTag(xml, "PDU-TRIGGERING", open);
-            auto name = ExtractTagContent(xml, "SHORT-NAME", open);
-            auto iref = ExtractTagContent(xml, "I-PDU-REF", open);
+            auto name = ExtractTagContent(xml, "SHORT-NAME", open, close);
+            auto iref = ExtractTagContent(xml, "I-PDU-REF", open, close);
             if (!name.empty() && !iref.empty()) {
                 ptrig_to_inner_pdu[name] = PathBaseName(iref);
             }
@@ -190,7 +197,7 @@ bool LoadARXML(const std::filesystem::path& file_path,
             auto open = FindOpenTag(xml, "CONTAINER-I-PDU", pos);
             if (open == std::string::npos) break;
             auto close = FindCloseTag(xml, "CONTAINER-I-PDU", open);
-            auto cname = ExtractTagContent(xml, "SHORT-NAME", open);
+            auto cname = ExtractTagContent(xml, "SHORT-NAME", open, close);
             if (cname.empty()) { pos = close; continue; }
 
             // Already has direct mappings? Skip
@@ -227,10 +234,10 @@ bool LoadARXML(const std::filesystem::path& file_path,
                     auto ci = pdu_defs.find(cname);
                     auto ii = pdu_defs.find(inner_it->second);
                     if (ci != pdu_defs.end() && ii != pdu_defs.end()) {
-                        if (ci->second.header_id == 0 && ii->second.header_id != 0)
+                        if (ci->second.header_id == 0 && ii->second.header_id != 0) {
                             ci->second.header_id = ii->second.header_id;
-                        if (ci->second.byte_length == 0 && ii->second.byte_length != 0)
                             ci->second.byte_length = ii->second.byte_length;
+                        }
                     }
                 }
                 rpos = ref_close_tag;
@@ -253,10 +260,10 @@ bool LoadARXML(const std::filesystem::path& file_path,
             auto open = FindOpenTag(xml, "CAN-FRAME", pos);
             if (open == std::string::npos) break;
             auto close = FindCloseTag(xml, "CAN-FRAME", open);
-            auto name = ExtractTagContent(xml, "SHORT-NAME", open);
+            auto name = ExtractTagContent(xml, "SHORT-NAME", open, close);
             if (name.empty()) { pos = close; continue; }
             FrameDef fd; fd.name = name;
-            auto fl = ExtractTagContent(xml, "FRAME-LENGTH", open);
+            auto fl = ExtractTagContent(xml, "FRAME-LENGTH", open, close);
             if (!fl.empty()) fd.frame_len = static_cast<uint32_t>(std::stoul(fl));
             frame_defs[name] = fd;
             size_t mpos = open;
@@ -264,11 +271,11 @@ bool LoadARXML(const std::filesystem::path& file_path,
                 auto mopen = FindOpenTag(xml, "PDU-TO-FRAME-MAPPING", mpos);
                 if (mopen == std::string::npos || mopen >= close) break;
                 auto mclose = FindCloseTag(xml, "PDU-TO-FRAME-MAPPING", mopen);
-                auto pref = ExtractTagContent(xml, "PDU-REF", mopen);
+                auto pref = ExtractTagContent(xml, "PDU-REF", mopen, mclose);
                 if (!pref.empty()) {
                     auto pn = PathBaseName(pref);
                     pdu_to_frame[pn] = name;
-                    auto sp = ExtractTagContent(xml, "START-POSITION", mopen);
+                    auto sp = ExtractTagContent(xml, "START-POSITION", mopen, mclose);
                     if (!sp.empty()) pdu_start_pos[pn] = static_cast<uint32_t>(std::stoul(sp));
                     // If the PDU is a container, also map its inner PDUs to this frame
                     auto ci = pdu_defs.find(pn);
@@ -305,8 +312,8 @@ bool LoadARXML(const std::filesystem::path& file_path,
 
     // Helper: extract frame ID + cluster from a triggering element
     auto parseTriggering = [&](size_t open, size_t close, const std::string& cluster_name) {
-        auto frame_ref = ExtractTagContent(xml, "FRAME-REF", open);
-        auto identifier = ExtractTagContent(xml, "IDENTIFIER", open);
+        auto frame_ref = ExtractTagContent(xml, "FRAME-REF", open, close);
+        auto identifier = ExtractTagContent(xml, "IDENTIFIER", open, close);
         if (!frame_ref.empty() && !identifier.empty()) {
             std::string fname = PathBaseName(frame_ref);
             frame_can_ids[fname] = static_cast<uint32_t>(std::stoul(identifier));
@@ -324,12 +331,11 @@ bool LoadARXML(const std::filesystem::path& file_path,
 
             // Read cluster metadata
             Cluster cl;
-            cl.name = ExtractTagContent(xml, "SHORT-NAME", open);
-            auto baud = ExtractTagContent(xml, "BAUDRATE", open);
+            cl.name = ExtractTagContent(xml, "SHORT-NAME", open, close);
+            auto baud = ExtractTagContent(xml, "BAUDRATE", open, close);
             if (!baud.empty()) cl.baudrate = static_cast<uint32_t>(std::stoul(baud));
-            // Check CAN-FD support
-            auto fd = ExtractTagContent(xml, "CAN-FD-FRAME-SUPPORT", open);
-            auto tx = ExtractTagContent(xml, "CAN-FRAME-TX-BEHAVIOR", open);
+            auto fd = ExtractTagContent(xml, "CAN-FD-FRAME-SUPPORT", open, close);
+            auto tx = ExtractTagContent(xml, "CAN-FRAME-TX-BEHAVIOR", open, close);
             cl.can_fd = (fd == "true") || (tx == "CAN-FD");
             cl.bus_type = cl.can_fd ? "CAN-FD" : "CAN";
 
