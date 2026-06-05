@@ -17,7 +17,9 @@ for fid in net.frame_ids()[:8]:
     print(f"Frame 0x{fid:X} [{info.name}] DLC={info.dlc}")
     for pdu in info.pdus:
         print(f"  PDU {pdu['name']} ({pdu['byte_length']} bytes, "
-              f"start={pdu.get('start_position',0)}, {len(pdu['signals'])} signals)")
+              f"start={pdu.get('start_position',0)}, "
+              f"header_id={pdu.get('header_id',0)}, "
+              f"{len(pdu['signals'])} signals)")
         if pdu.get("uuid"):
             print(f"    uuid={pdu['uuid']}")
         for s in pdu["signals"][:3]:

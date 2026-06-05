@@ -30,9 +30,10 @@ struct Signal {
 
 struct Pdu {
     std::string name;
-    std::string uuid;           // AUTOSAR UUID
-    uint32_t    byte_length = 0;
-    uint32_t    start_position = 0;  // byte offset within the CAN frame
+    std::string uuid;
+    uint32_t    header_id      = 0;  // <HEADER-ID-SHORT-HEADER>
+    uint32_t    byte_length    = 0;
+    uint32_t    start_position = 0;
     std::vector<Signal> signals;
 };
 

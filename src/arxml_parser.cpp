@@ -102,6 +102,7 @@ bool LoadARXML(const std::filesystem::path& file_path,
     struct PduDef {
         std::string name;
         std::string uuid;
+        uint32_t    header_id   = 0;
         uint32_t    byte_length = 0;
     };
     std::unordered_map<std::string, PduDef> pdu_defs;
@@ -140,6 +141,9 @@ bool LoadARXML(const std::filesystem::path& file_path,
             auto plen = ExtractTagContent(xml, "LENGTH", open);
             if (!plen.empty())
                 pd.byte_length = static_cast<uint32_t>(std::stoul(plen));
+            auto hid = ExtractTagContent(xml, "HEADER-ID-SHORT-HEADER", open);
+            if (!hid.empty())
+                pd.header_id = static_cast<uint32_t>(std::stoul(hid));
             pdu_defs[pdu_name] = pd;
 
             size_t mpos = open;
@@ -290,7 +294,8 @@ bool LoadARXML(const std::filesystem::path& file_path,
         auto pi = pdu_defs.find(pdu_name);
         if (pi != pdu_defs.end()) {
             pdu.byte_length = pi->second.byte_length;
-            pdu.uuid = pi->second.uuid;
+            pdu.uuid        = pi->second.uuid;
+            pdu.header_id   = pi->second.header_id;
         }
         auto psp = pdu_start_pos.find(pdu_name);
         if (psp != pdu_start_pos.end()) pdu.start_position = psp->second;
