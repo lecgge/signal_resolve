@@ -135,9 +135,14 @@ inline bool ParseSgLine(std::string_view line, Signal& sig) {
     if (line.empty()) return false;
     sig.byte_order = (line[0] == '1') ? ByteOrder::INTEL : ByteOrder::MOTOROLA;
     line.remove_prefix(1); // skip the digit
-    // Next char is '+' or '-' (sign) – skip it
-    if (!line.empty() && (line[0] == '+' || line[0] == '-'))
+    // Next char is '+' or '-' (sign) – capture it
+    if (!line.empty() && line[0] == '-') {
+        sig.is_signed = true;
         line.remove_prefix(1);
+    } else if (!line.empty() && line[0] == '+') {
+        sig.is_signed = false;
+        line.remove_prefix(1);
+    }
 
     // ── 5. (Factor, Offset) ───────────────────────────────────────────────
     auto lp = line.find('(');

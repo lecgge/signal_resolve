@@ -25,6 +25,7 @@ struct Signal {
     bool     is_multiplexed  = false;
     uint32_t mux_value       = 0;
     bool     is_mux_decoder  = false; // MUX selector signal (M flag)
+    bool     is_signed       = false; // @0- or @1- in DBC
 };
 
 struct Frame {

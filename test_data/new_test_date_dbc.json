@@ -1,722 +1,247 @@
 [
   {
     "id": 1,
-    "desc": "FICM_CFCAN_FrP01 - ACDrvrTemV - 全0基础边界",
-    "frame_id": 929,
-    "raw_hex": "0000000000000000",
-    "expected_signals": { "ACDrvrTemV": 0.0 }
+    "desc": "NMT_Out_Request - 全0基础测试",
+    "frame_id": 0,
+    "raw_hex": "0000",
+    "expected_signals": { "nmt_CMD": 0.0, "Node_ID": 0.0 }
   },
   {
     "id": 2,
-    "desc": "FICM_CFCAN_FrP01 - ACDrvrTemV - 激活多路复用复合信号",
-    "frame_id": 929,
-    "raw_hex": "0000000000000080",
-    "expected_signals": { "CBDActvdSpdSetng": 30.0, "CLWActdSpdSetng": 30.0, "RrViewInfoAstntActvdSpdSetng": 30.0 }
+    "desc": "NMT_Out_Request - 枚举值激活 (nmt_CMD=1: Operational, Node_ID=5)",
+    "frame_id": 0,
+    "raw_hex": "0105",
+    "expected_signals": { "nmt_CMD": 1.0, "Node_ID": 5.0 }
   },
   {
     "id": 3,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM - DTCInfomationFICM - 全0基础边界",
-    "frame_id": 1977,
-    "raw_hex": "0000000000000000",
-    "expected_signals": { "DTCInfomationFICM": 0.0 }
+    "desc": "NMT_Out_Request - 有符号数边界 (nmt_CMD=127极大值, Node_ID=-128极小值)",
+    "frame_id": 0,
+    "raw_hex": "7F80",
+    "expected_signals": { "nmt_CMD": 127.0, "Node_ID": -128.0 }
   },
   {
     "id": 4,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM - DTCInfomationFICM - 大端全1物理Double精度校准",
-    "frame_id": 1977,
-    "raw_hex": "FFFFFFFFFFFFFF00",
-    "expected_signals": { "DTCInfomationFICM": 72057594037927936.0 }
+    "desc": "NMT_Response_Frame_In - 全0基础测试",
+    "frame_id": 1793,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "NMT_Response_10": 0.0, "NMT_Response_11": 0.0 }
   },
   {
     "id": 5,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM - DTCInfomationFICM - 仅最高有效位MSB置1",
-    "frame_id": 1977,
-    "raw_hex": "8000000000000000",
-    "expected_signals": { "DTCInfomationFICM": 36028797018963968.0 }
+    "desc": "NMT_Response_Frame_In - 32位有符号正最大值边界 (0x7FFFFFFF)",
+    "frame_id": 1793,
+    "raw_hex": "FFFFFF7F00000000",
+    "expected_signals": { "NMT_Response_10": 2147483647.0, "NMT_Response_11": 0.0 }
   },
   {
     "id": 6,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM - DTCInfomationFICM - 仅最低有效位LSB置1",
-    "frame_id": 1977,
-    "raw_hex": "0000000000000100",
-    "expected_signals": { "DTCInfomationFICM": 1.0 }
+    "desc": "NMT_Response_Frame_In - 32位有符号负最大值边界 (0x80000000)",
+    "frame_id": 1793,
+    "raw_hex": "0000000000000080",
+    "expected_signals": { "NMT_Response_10": 0.0, "NMT_Response_11": -2147483648.0 }
   },
   {
     "id": 7,
-    "desc": "DIAG_PhysResp_VKR - DiagnosticRespVKR - 全0基础边界",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 0.0 }
+    "desc": "SYNC - 0字节空载报文边界测试",
+    "frame_id": 128,
+    "raw_hex": "",
+    "expected_signals": {}
   },
   {
     "id": 8,
-    "desc": "DIAG_PhysResp_VKR - DiagnosticRespVKR - 64位大端全1精度校准",
-    "frame_id": 1547,
-    "raw_hex": "FFFFFFFFFFFFFFFF",
-    "expected_signals": { "DiagnosticRespVKR": 18446744073709551616.0 }
+    "desc": "EMCY - 全0基础测试",
+    "frame_id": 129,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "EMCY_Error_Code": 0.0, "E_Reg": 0.0, "E_Number": 0.0 }
   },
   {
     "id": 9,
-    "desc": "DIAG_PhysResp_VKR - DiagnosticRespVKR - 大端方波电平校准",
-    "frame_id": 1547,
-    "raw_hex": "AA55AA55AA55AA55",
-    "expected_signals": { "DiagnosticRespVKR": 12273903644374837248.0 }
+    "desc": "EMCY - 复合正极大值边界测试",
+    "frame_id": 129,
+    "raw_hex": "FF7F7F7F00000000",
+    "expected_signals": { "EMCY_Error_Code": 32767.0, "E_Reg": 127.0, "E_Number": 127.0 }
   },
   {
     "id": 10,
-    "desc": "IPK_CFCAN_FrP06 - CalendarDay - 小端全0测试",
-    "frame_id": 1345,
-    "raw_hex": "0000000000000000",
-    "expected_signals": { "CalendarDay": 0.0 }
+    "desc": "EMCY - 复合负极小值边界测试",
+    "frame_id": 129,
+    "raw_hex": "0080808000000000",
+    "expected_signals": { "EMCY_Error_Code": -32768.0, "E_Reg": -128.0, "E_Number": -128.0 }
   },
   {
     "id": 11,
-    "desc": "IPK_CFCAN_FrP06 - CalendarDay - 单信号满幅",
-    "frame_id": 1345,
-    "raw_hex": "1F00000000000000",
-    "expected_signals": { "CalendarDay": 31.0 }
+    "desc": "SDO_download - 多路复用 m47 分支激活 (sdo_down_CMD=47, 触发 data8)",
+    "frame_id": 1537,
+    "raw_hex": "2F341205CE000000",
+    "expected_signals": { "sdo_down_CMD": 47.0, "sdo_down_IDX": 4660.0, "sdo_down_SUBIDX": 5.0, "data8": -50.0 }
   },
   {
     "id": 12,
-    "desc": "IPK_CFCAN_FrP06 - CalendarMonth - 单信号满幅跨界",
-    "frame_id": 1345,
-    "raw_hex": "E001000000000000",
-    "expected_signals": { "CalendarMonth": 15.0, "CalendarDay": 0.0 }
+    "desc": "SDO_download - 多路复用 m43 分支激活 (sdo_down_CMD=43, 触发 data16 负数边界)",
+    "frame_id": 1537,
+    "raw_hex": "2B00000018FC0000",
+    "expected_signals": { "sdo_down_CMD": 43.0, "sdo_down_IDX": 0.0, "sdo_down_SUBIDX": 0.0, "data16": -1000.0 }
   },
   {
     "id": 13,
-    "desc": "IPK_CFCAN_FrP06 - CalendarYear - 单信号满幅",
-    "frame_id": 1345,
-    "raw_hex": "00FE000000000000",
-    "expected_signals": { "CalendarYear": 127.0 }
+    "desc": "SDO_download - 多路复用 m39 分支激活 (sdo_down_CMD=39, 触发 data24 24位整型测试)",
+    "frame_id": 1537,
+    "raw_hex": "2700000020A10700",
+    "expected_signals": { "sdo_down_CMD": 39.0, "sdo_down_IDX": 0.0, "sdo_down_SUBIDX": 0.0, "data24": 500000.0 }
   },
   {
     "id": 14,
-    "desc": "IPK_CFCAN_FrP06 - HourOfDay - 单信号满幅",
-    "frame_id": 1345,
-    "raw_hex": "00001F0000000000",
-    "expected_signals": { "HourOfDay": 31.0 }
+    "desc": "SDO_download - 多路复用 m35 分支激活 (sdo_down_CMD=35, 触发 data320 满载32位有符号测试)",
+    "frame_id": 1537,
+    "raw_hex": "2300000000C0D188",
+    "expected_signals": { "sdo_down_CMD": 35.0, "sdo_down_IDX": 0.0, "sdo_down_SUBIDX": 0.0, "data320": -2000000000.0 }
   },
   {
     "id": 15,
-    "desc": "IPK_CFCAN_FrP06 - MinuteOfHour - 单信号满幅",
-    "frame_id": 1345,
-    "raw_hex": "0000E00700000000",
-    "expected_signals": { "MinuteOfHour": 63.0, "HourOfDay": 0.0 }
+    "desc": "SDO_download - 多路复用 m67 分支激活 (sdo_down_CMD=67, 触发 data321)",
+    "frame_id": 1537,
+    "raw_hex": "4300000015CD5B07",
+    "expected_signals": { "sdo_down_CMD": 67.0, "sdo_down_IDX": 0.0, "sdo_down_SUBIDX": 0.0, "data321": 123456789.0 }
   },
   {
     "id": 16,
-    "desc": "IPK_CFCAN_FrP06 - SecsOfMinute - 单信号满幅",
-    "frame_id": 1345,
-    "raw_hex": "000000F803000000",
-    "expected_signals": { "SecsOfMinute": 63.0, "MinuteOfHour": 0.0 }
+    "desc": "SDO_upload - 多路复用 m128 错误分支 (sdo_state=128即有符号-128, 触发 error_code)",
+    "frame_id": 1409,
+    "raw_hex": "80000000FFFFFFFF",
+    "expected_signals": { "sdo_state": -128.0, "sdo_uo_IDX": 0.0, "sdo_up_SUBIDX": 0.0, "error_code": -1.0 }
   },
   {
     "id": 17,
-    "desc": "IPK_CFCAN_FrP06 - 复合小端物理校准 1 (全量解析对齐)",
-    "frame_id": 1345,
-    "raw_hex": "FFFFFFFF00000000",
-    "expected_signals": {
-      "CalendarDay": 31.0,
-      "CalendarMonth": 15.0,
-      "CalendarYear": 127.0,
-      "HourOfDay": 31.0,
-      "MinuteOfHour": 63.0,
-      "SecsOfMinute": 31.0,
-      "IPK_200ms_PDU06_CRC": 255.0,
-      "IPK_200ms_PDU06_RC": 15.0,
-      "IPK_200ms_PDU06_Reserve02": 7.0
-    }
+    "desc": "SDO_upload - 多路复用 m79 分支 (sdo_state=79, 触发 data8)",
+    "frame_id": 1409,
+    "raw_hex": "4F00000064000000",
+    "expected_signals": { "sdo_state": 79.0, "sdo_uo_IDX": 0.0, "sdo_up_SUBIDX": 0.0, "data8": 100.0 }
   },
   {
     "id": 18,
-    "desc": "IPK_CFCAN_FrP06 - 复合小端物理校准 2 (真实时间戳位移对齐)",
-    "frame_id": 1345,
-    "raw_hex": "2F420C1200000000",
-    "expected_signals": {
-      "CalendarDay": 15.0,
-      "CalendarMonth": 1.0,
-      "CalendarYear": 33.0,
-      "HourOfDay": 12.0,
-      "MinuteOfHour": 16.0,
-      "SecsOfMinute": 2.0,
-      "IPK_200ms_PDU06_CRC": 47.0,
-      "IPK_200ms_PDU06_RC": 2.0,
-      "IPK_200ms_PDU06_Reserve02": 4.0
-    }
+    "desc": "SDO_upload - 多路复用 m75 分支 (sdo_state=75, 触发 data16)",
+    "frame_id": 1409,
+    "raw_hex": "4B00000030750000",
+    "expected_signals": { "sdo_state": 75.0, "sdo_uo_IDX": 0.0, "sdo_up_SUBIDX": 0.0, "data16": 30000.0 }
   },
   {
     "id": 19,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarDay=1",
-    "frame_id": 1345,
-    "raw_hex": "0100000000000000",
-    "expected_signals": { "CalendarDay": 1.0 }
+    "desc": "SDO_upload - 多路复用 m71 分支 (sdo_state=71, 触发 data24 负数补码测试)",
+    "frame_id": 1409,
+    "raw_hex": "47000000C0B4B300",
+    "expected_signals": { "sdo_state": 71.0, "sdo_uo_IDX": 0.0, "sdo_up_SUBIDX": 0.0, "data24": -5000000.0 }
   },
   {
     "id": 20,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarDay=2",
-    "frame_id": 1345,
-    "raw_hex": "0200000000000000",
-    "expected_signals": { "CalendarDay": 2.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_0 - 全0基础测试",
+    "frame_id": 513,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "CMDDigital": 0.0, "PVDigital": 0.0 }
   },
   {
     "id": 21,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarDay=4",
-    "frame_id": 1345,
-    "raw_hex": "0400000000000000",
-    "expected_signals": { "CalendarDay": 4.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_0 - 32位纯无符号全1极限极大值边界 (0xFFFFFFFF)",
+    "frame_id": 513,
+    "raw_hex": "FFFFFFFFFFFFFFFF",
+    "expected_signals": { "CMDDigital": 4294967295.0, "PVDigital": 4294967295.0 }
   },
   {
     "id": 22,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarDay=8",
-    "frame_id": 1345,
-    "raw_hex": "0800000000000000",
-    "expected_signals": { "CalendarDay": 8.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_0 - 交叉混合值小端扫描",
+    "frame_id": 513,
+    "raw_hex": "4E61BC00B17F3905",
+    "expected_signals": { "CMDDigital": 12345678.0, "PVDigital": 87654321.0 }
   },
   {
     "id": 23,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarDay=16",
-    "frame_id": 1345,
-    "raw_hex": "1000000000000000",
-    "expected_signals": { "CalendarDay": 16.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_1 (ID: 769) - 全0基础测试",
+    "frame_id": 769,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "SPDigital": 0.0 }
   },
   {
     "id": 24,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarMonth=1",
-    "frame_id": 1345,
-    "raw_hex": "2000000000000000",
-    "expected_signals": { "CalendarMonth": 1.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_1 (ID: 769) - 无符号满幅极大值测试",
+    "frame_id": 769,
+    "raw_hex": "FFFFFFFF00000000",
+    "expected_signals": { "SPDigital": 4294967295.0 }
   },
   {
     "id": 25,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarMonth=2",
-    "frame_id": 1345,
-    "raw_hex": "4000000000000000",
-    "expected_signals": { "CalendarMonth": 2.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_1 (ID: 385) - 全0基础测试",
+    "frame_id": 385,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "CMD_Raw": 0.0, "CMD_Display": 0.0 }
   },
   {
     "id": 26,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarMonth=4",
-    "frame_id": 1345,
-    "raw_hex": "8000000000000000",
-    "expected_signals": { "CalendarMonth": 4.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_1 (ID: 385) - 无符号双信号满幅极大值测试",
+    "frame_id": 385,
+    "raw_hex": "FFFFFFFFFFFFFFFF",
+    "expected_signals": { "CMD_Raw": 4294967295.0, "CMD_Display": 4294967295.0 }
   },
   {
     "id": 27,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarMonth=8",
-    "frame_id": 1345,
-    "raw_hex": "0001000000000000",
-    "expected_signals": { "CalendarMonth": 8.0 }
+    "desc": "Transmit_PDO_Mapping_Parameter_0 - 全0基础测试",
+    "frame_id": 641,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "POS_Measured": 0.0, "NamurStatus": 0.0 }
   },
   {
     "id": 28,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarYear=1",
-    "frame_id": 1345,
-    "raw_hex": "0002000000000000",
-    "expected_signals": { "CalendarYear": 1.0 }
+    "desc": "Transmit_PDO_Mapping_Parameter_0 - 物理状态值交叉压测",
+    "frame_id": 641,
+    "raw_hex": "0094357701000000",
+    "expected_signals": { "POS_Measured": 2000000000.0, "NamurStatus": 1.0 }
   },
   {
     "id": 29,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarYear=2",
-    "frame_id": 1345,
-    "raw_hex": "0004000000000000",
-    "expected_signals": { "CalendarYear": 2.0 }
+    "desc": "Transmit_PDO_Mapping_Parameter_1 - 全0基础测试",
+    "frame_id": 897,
+    "raw_hex": "0000000000000000",
+    "expected_signals": { "SP": 0.0, "PV": 0.0 }
   },
   {
     "id": 30,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarYear=4",
-    "frame_id": 1345,
-    "raw_hex": "0008000000000000",
-    "expected_signals": { "CalendarYear": 4.0 }
+    "desc": "Transmit_PDO_Mapping_Parameter_1 - 高位无符号溢出边缘压测",
+    "frame_id": 897,
+    "raw_hex": "00286BEE20A10700",
+    "expected_signals": { "SP": 4000000000.0, "PV": 500000.0 }
   },
   {
     "id": 31,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarYear=8",
-    "frame_id": 1345,
-    "raw_hex": "0010000000000000",
-    "expected_signals": { "CalendarYear": 8.0 }
+    "desc": "Transmit_PDO_Mapping_Parameter_2 - 无符号全1极大值测试",
+    "frame_id": 1153,
+    "raw_hex": "FFFFFFFFFFFFFFFF",
+    "expected_signals": { "PDO_Mapping_Entry": 4294967295.0, "PDO_Mapping_Entry_2": 4294967295.0 }
   },
   {
     "id": 32,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarYear=16",
-    "frame_id": 1345,
-    "raw_hex": "0020000000000000",
-    "expected_signals": { "CalendarYear": 16.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_0 - 单通道 LSB 极小值扫描 (CMDDigital=1)",
+    "frame_id": 513,
+    "raw_hex": "0100000000000000",
+    "expected_signals": { "CMDDigital": 1.0, "PVDigital": 0.0 }
   },
   {
     "id": 33,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarYear=32",
-    "frame_id": 1345,
-    "raw_hex": "0040000000000000",
-    "expected_signals": { "CalendarYear": 32.0 }
+    "desc": "Receive_PDO_Mapping_Parameter_0 - 单通道 MSB 跨字节切换扫描 (PVDigital=1)",
+    "frame_id": 513,
+    "raw_hex": "0000000001000000",
+    "expected_signals": { "CMDDigital": 0.0, "PVDigital": 1.0 }
   },
   {
     "id": 34,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - CalendarYear=64",
-    "frame_id": 1345,
-    "raw_hex": "0080000000000000",
-    "expected_signals": { "CalendarYear": 64.0 }
+    "desc": "Transmit_PDO_Mapping_Parameter_1 - 无符号 32-bit 第31位置位测试",
+    "frame_id": 897,
+    "raw_hex": "0000008000000080",
+    "expected_signals": { "SP": 2147483648.0, "PV": 2147483648.0 }
   },
   {
     "id": 35,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - HourOfDay=1",
-    "frame_id": 1345,
-    "raw_hex": "0000010000000000",
-    "expected_signals": { "HourOfDay": 1.0 }
-  },
-  {
-    "id": 36,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - HourOfDay=2",
-    "frame_id": 1345,
-    "raw_hex": "0000020000000000",
-    "expected_signals": { "HourOfDay": 2.0 }
-  },
-  {
-    "id": 37,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - HourOfDay=4",
-    "frame_id": 1345,
-    "raw_hex": "0000040000000000",
-    "expected_signals": { "HourOfDay": 4.0 }
-  },
-  {
-    "id": 38,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - HourOfDay=8",
-    "frame_id": 1345,
-    "raw_hex": "0000080000000000",
-    "expected_signals": { "HourOfDay": 8.0 }
-  },
-  {
-    "id": 39,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - HourOfDay=16",
-    "frame_id": 1345,
-    "raw_hex": "0000100000000000",
-    "expected_signals": { "HourOfDay": 16.0 }
-  },
-  {
-    "id": 40,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - MinuteOfHour=1",
-    "frame_id": 1345,
-    "raw_hex": "0000200000000000",
-    "expected_signals": { "MinuteOfHour": 1.0 }
-  },
-  {
-    "id": 41,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - MinuteOfHour=2",
-    "frame_id": 1345,
-    "raw_hex": "0000400000000000",
-    "expected_signals": { "MinuteOfHour": 2.0 }
-  },
-  {
-    "id": 42,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - MinuteOfHour=4",
-    "frame_id": 1345,
-    "raw_hex": "0000800000000000",
-    "expected_signals": { "MinuteOfHour": 4.0 }
-  },
-  {
-    "id": 43,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - MinuteOfHour=8",
-    "frame_id": 1345,
-    "raw_hex": "0000000100000000",
-    "expected_signals": { "MinuteOfHour": 8.0 }
-  },
-  {
-    "id": 44,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - MinuteOfHour=16",
-    "frame_id": 1345,
-    "raw_hex": "0000000200000000",
-    "expected_signals": { "MinuteOfHour": 16.0 }
-  },
-  {
-    "id": 45,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - MinuteOfHour=32",
-    "frame_id": 1345,
-    "raw_hex": "0000000400000000",
-    "expected_signals": { "MinuteOfHour": 32.0 }
-  },
-  {
-    "id": 46,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - SecsOfMinute=1",
-    "frame_id": 1345,
-    "raw_hex": "0000000800000000",
-    "expected_signals": { "SecsOfMinute": 1.0 }
-  },
-  {
-    "id": 47,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - SecsOfMinute=2",
-    "frame_id": 1345,
-    "raw_hex": "0000001000000000",
-    "expected_signals": { "SecsOfMinute": 2.0 }
-  },
-  {
-    "id": 48,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - SecsOfMinute=4",
-    "frame_id": 1345,
-    "raw_hex": "0000002000000000",
-    "expected_signals": { "SecsOfMinute": 4.0 }
-  },
-  {
-    "id": 49,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - SecsOfMinute=8",
-    "frame_id": 1345,
-    "raw_hex": "0000004000000000",
-    "expected_signals": { "SecsOfMinute": 8.0 }
-  },
-  {
-    "id": 50,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - SecsOfMinute=16",
-    "frame_id": 1345,
-    "raw_hex": "0000008000000000",
-    "expected_signals": { "SecsOfMinute": 16.0 }
-  },
-  {
-    "id": 51,
-    "desc": "IPK_CFCAN_FrP06 小端逐位扫描 - SecsOfMinute=32",
-    "frame_id": 1345,
-    "raw_hex": "0000000001000000",
-    "expected_signals": { "SecsOfMinute": 32.0 }
-  },
-  {
-    "id": 52,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit0",
-    "frame_id": 1977,
-    "raw_hex": "0000000000000100",
-    "expected_signals": { "DTCInfomationFICM": 1.0 }
-  },
-  {
-    "id": 53,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit1",
-    "frame_id": 1977,
-    "raw_hex": "0000000000000200",
-    "expected_signals": { "DTCInfomationFICM": 2.0 }
-  },
-  {
-    "id": 54,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit2",
-    "frame_id": 1977,
-    "raw_hex": "0000000000000400",
-    "expected_signals": { "DTCInfomationFICM": 4.0 }
-  },
-  {
-    "id": 55,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit3",
-    "frame_id": 1977,
-    "raw_hex": "0000000000000800",
-    "expected_signals": { "DTCInfomationFICM": 8.0 }
-  },
-  {
-    "id": 56,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit4",
-    "frame_id": 1977,
-    "raw_hex": "0000000000001000",
-    "expected_signals": { "DTCInfomationFICM": 16.0 }
-  },
-  {
-    "id": 57,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit5",
-    "frame_id": 1977,
-    "raw_hex": "0000000000002000",
-    "expected_signals": { "DTCInfomationFICM": 32.0 }
-  },
-  {
-    "id": 58,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit6",
-    "frame_id": 1977,
-    "raw_hex": "0000000000004000",
-    "expected_signals": { "DTCInfomationFICM": 64.0 }
-  },
-  {
-    "id": 59,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte6的bit7",
-    "frame_id": 1977,
-    "raw_hex": "0000000000008000",
-    "expected_signals": { "DTCInfomationFICM": 128.0 }
-  },
-  {
-    "id": 60,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte5的bit0",
-    "frame_id": 1977,
-    "raw_hex": "0000000000010000",
-    "expected_signals": { "DTCInfomationFICM": 256.0 }
-  },
-  {
-    "id": 61,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte5的bit7",
-    "frame_id": 1977,
-    "raw_hex": "0000000000800000",
-    "expected_signals": { "DTCInfomationFICM": 32768.0 }
-  },
-  {
-    "id": 62,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte4的bit0",
-    "frame_id": 1977,
-    "raw_hex": "0000000001000000",
-    "expected_signals": { "DTCInfomationFICM": 65536.0 }
-  },
-  {
-    "id": 63,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte3的bit0",
-    "frame_id": 1977,
-    "raw_hex": "0000000100000000",
-    "expected_signals": { "DTCInfomationFICM": 16777216.0 }
-  },
-  {
-    "id": 64,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte2的bit0",
-    "frame_id": 1977,
-    "raw_hex": "0000010000000000",
-    "expected_signals": { "DTCInfomationFICM": 4294967296.0 }
-  },
-  {
-    "id": 65,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端扫描 - Byte1的bit0",
-    "frame_id": 1977,
-    "raw_hex": "0001000000000000",
-    "expected_signals": { "DTCInfomationFICM": 1099511627776.0 }
-  },
-  {
-    "id": 66,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit0",
-    "frame_id": 1547,
-    "raw_hex": "8000000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 9223372036854775808.0 }
-  },
-  {
-    "id": 67,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit1",
-    "frame_id": 1547,
-    "raw_hex": "4000000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 4611686018427387904.0 }
-  },
-  {
-    "id": 68,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit2",
-    "frame_id": 1547,
-    "raw_hex": "2000000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 2305843009213693952.0 }
-  },
-  {
-    "id": 69,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit3",
-    "frame_id": 1547,
-    "raw_hex": "1000000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 1152921504606846976.0 }
-  },
-  {
-    "id": 70,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit4",
-    "frame_id": 1547,
-    "raw_hex": "0800000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 576460752303423488.0 }
-  },
-  {
-    "id": 71,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit5",
-    "frame_id": 1547,
-    "raw_hex": "0400000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 288230376151711744.0 }
-  },
-  {
-    "id": 72,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit6",
-    "frame_id": 1547,
-    "raw_hex": "0200000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 144115188075855872.0 }
-  },
-  {
-    "id": 73,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte0的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0100000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 72057594037927936.0 }
-  },
-  {
-    "id": 74,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte1的bit0",
-    "frame_id": 1547,
-    "raw_hex": "0080000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 36028797018963968.0 }
-  },
-  {
-    "id": 75,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte1的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0001000000000000",
-    "expected_signals": { "DiagnosticRespVKR": 281474976710656.0 }
-  },
-  {
-    "id": 76,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte2的bit0",
-    "frame_id": 1547,
-    "raw_hex": "0000800000000000",
-    "expected_signals": { "DiagnosticRespVKR": 140737488355328.0 }
-  },
-  {
-    "id": 77,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte2的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0000010000000000",
-    "expected_signals": { "DiagnosticRespVKR": 1099511627776.0 }
-  },
-  {
-    "id": 78,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte3的bit0",
-    "frame_id": 1547,
-    "raw_hex": "0000008000000000",
-    "expected_signals": { "DiagnosticRespVKR": 549755813888.0 }
-  },
-  {
-    "id": 79,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte3的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0000000100000000",
-    "expected_signals": { "DiagnosticRespVKR": 4294967296.0 }
-  },
-  {
-    "id": 80,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte4的bit0",
-    "frame_id": 1547,
-    "raw_hex": "0000000080000000",
-    "expected_signals": { "DiagnosticRespVKR": 2147483648.0 }
-  },
-  {
-    "id": 81,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte4的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0000000001000000",
-    "expected_signals": { "DiagnosticRespVKR": 16777216.0 }
-  },
-  {
-    "id": 82,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte5的bit0",
-    "frame_id": 1547,
-    "raw_hex": "0000000000800000",
-    "expected_signals": { "DiagnosticRespVKR": 8388608.0 }
-  },
-  {
-    "id": 83,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte5的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0000000000010000",
-    "expected_signals": { "DiagnosticRespVKR": 65536.0 }
-  },
-  {
-    "id": 84,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte6的bit0",
-    "frame_id": 1547,
-    "raw_hex": "0000000000008000",
-    "expected_signals": { "DiagnosticRespVKR": 32768.0 }
-  },
-  {
-    "id": 85,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte6的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000100",
-    "expected_signals": { "DiagnosticRespVKR": 256.0 }
-  },
-  {
-    "id": 86,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit0",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000080",
-    "expected_signals": { "DiagnosticRespVKR": 128.0 }
-  },
-  {
-    "id": 87,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit1",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000040",
-    "expected_signals": { "DiagnosticRespVKR": 64.0 }
-  },
-  {
-    "id": 88,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit2",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000020",
-    "expected_signals": { "DiagnosticRespVKR": 32.0 }
-  },
-  {
-    "id": 89,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit3",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000010",
-    "expected_signals": { "DiagnosticRespVKR": 16.0 }
-  },
-  {
-    "id": 90,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit4",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000008",
-    "expected_signals": { "DiagnosticRespVKR": 8.0 }
-  },
-  {
-    "id": 91,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit5",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000004",
-    "expected_signals": { "DiagnosticRespVKR": 4.0 }
-  },
-  {
-    "id": 92,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit6",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000002",
-    "expected_signals": { "DiagnosticRespVKR": 2.0 }
-  },
-  {
-    "id": 93,
-    "desc": "DIAG_PhysResp_VKR 64位满大端平移 - Byte7的bit7",
-    "frame_id": 1547,
-    "raw_hex": "0000000000000001",
-    "expected_signals": { "DiagnosticRespVKR": 1.0 }
-  },
-  {
-    "id": 94,
-    "desc": "混合测试 - 跨帧交叉验证 1",
-    "frame_id": 1345,
-    "raw_hex": "2100000000000000",
-    "expected_signals": { "CalendarDay": 1.0, "CalendarMonth": 1.0 }
-  },
-  {
-    "id": 95,
-    "desc": "混合测试 - 跨帧交叉验证 2",
-    "frame_id": 1345,
-    "raw_hex": "0102000000000000",
-    "expected_signals": { "CalendarDay": 1.0, "CalendarMonth": 0.0, "CalendarYear": 1.0 }
-  },
-  {
-    "id": 96,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 极限位重叠测试 - Double对齐",
-    "frame_id": 1977,
-    "raw_hex": "8000000000000100",
-    "expected_signals": { "DTCInfomationFICM": 36028797018963968.0 }
-  },
-  {
-    "id": 97,
-    "desc": "DIAG_PhysResp_VKR 极限位重叠测试",
-    "frame_id": 1547,
-    "raw_hex": "8000000000000001",
-    "expected_signals": { "DiagnosticRespVKR": 9223372036854775808.0 }
-  },
-  {
-    "id": 98,
-    "desc": "IPK_CFCAN_FrP06 时间戳极限状态",
-    "frame_id": 1345,
-    "raw_hex": "E000000000000000",
-    "expected_signals": { "CalendarMonth": 7.0, "CalendarDay": 0.0 }
-  },
-  {
-    "id": 99,
-    "desc": "IPK_CFCAN_FrP06 时间戳边界测试",
-    "frame_id": 1345,
-    "raw_hex": "0000A00000000000",
-    "expected_signals": { "MinuteOfHour": 5.0, "HourOfDay": 0.0 }
-  },
-  {
-    "id": 100,
-    "desc": "DIAG_CFCAN_DTCInfo_FICM 56位大端全面覆盖极限测试 - 完美匹配 Double 精度终值",
-    "frame_id": 1977,
-    "raw_hex": "5555555555555500",
-    "expected_signals": { "DTCInfomationFICM": 2.4019198012642644e+16 }
+    "desc": "Transmit_PDO_Mapping_Parameter_2 - 错位掩码增量测试",
+    "frame_id": 1153,
+    "raw_hex": "0000000100000002",
+    "expected_signals": { "PDO_Mapping_Entry": 16777216.0, "PDO_Mapping_Entry_2": 33554432.0 }
   }
 ]

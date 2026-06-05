@@ -51,10 +51,12 @@ public:
         uint64_t        raw_value);
 
     // Linear conversion: raw -> physical
-    static double RawToPhysical(uint64_t raw, double factor, double offset);
+    static double RawToPhysical(uint64_t raw, double factor, double offset,
+                                bool is_signed = false);
 
     // Linear conversion: physical -> raw (rounded)
-    static uint64_t PhysicalToRaw(double physical, double factor, double offset);
+    static uint64_t PhysicalToRaw(double physical, double factor, double offset,
+                                  bool is_signed = false, uint32_t bit_length = 0);
 };
 
 } // namespace usde

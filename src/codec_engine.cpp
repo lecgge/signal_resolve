@@ -82,11 +82,12 @@ uint64_t CodecEngine::ExtractBits(
         }
 
         // Shift right to align LSB to bit 0
-        // Single-byte signal: value already in correct byte, no shift needed.
-        // Multi-byte: shift by the distance from the first byte's start.
-        uint32_t shift = (first_byte == last_byte)
-                             ? 0u
-                             : static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
+        // For Motorola-within-byte: LSB is at absolute bit position
+        // (first_byte * 8 + lsb_in_byte). In the big-endian assembled value
+        // byte[first_byte] is at MSB, so LSB is at bit position:
+        //   lsb_in_byte  (when first_byte == last_byte)
+        //   first_byte*8 + lsb_in_byte  (multi-byte)
+        uint32_t shift = static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
         val >>= shift;
 
         uint64_t mask = (bit_length == 64) ? ~uint64_t(0)
@@ -161,11 +162,22 @@ void CodecEngine::PackBits(
         uint32_t shift = static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
 
         for (uint32_t bi = last_byte; bi >= first_byte && bi < size; --bi) {
+            // This byte covers bits [(last_byte-bi)*8  .. (last_byte-bi)*8+7]
+            // in the assembled big-endian word. The signal starts at `shift`
+            // from the LSB of the assembled word.
+            // So byte bi receives signal bits:
+            //   sig_bit_start = (last_byte - bi) * 8 - shift
             uint32_t byte_idx = last_byte - bi;
-            uint32_t bit_pos = byte_idx * 8 + shift;
-            uint8_t new_byte = (bit_pos < 64)
-                                   ? static_cast<uint8_t>(raw_value >> bit_pos)
-                                   : 0;
+            int32_t sig_bit_start = static_cast<int32_t>(byte_idx * 8) -
+                                     static_cast<int32_t>(shift);
+            uint8_t new_byte = 0;
+            if (sig_bit_start < static_cast<int32_t>(bit_length) && sig_bit_start > -8) {
+                uint32_t rshift = (sig_bit_start >= 0)
+                                      ? static_cast<uint32_t>(sig_bit_start) : 0u;
+                new_byte = static_cast<uint8_t>(raw_value >> rshift);
+                if (sig_bit_start < 0)
+                    new_byte = static_cast<uint8_t>(new_byte << (-sig_bit_start));
+            }
 
             uint8_t sig_mask = 0xFF;
             if (bi == last_byte) {
@@ -184,14 +196,25 @@ void CodecEngine::PackBits(
 // Linear Transformer
 // ============================================================================
 
-double CodecEngine::RawToPhysical(uint64_t raw, double factor, double offset) {
+double CodecEngine::RawToPhysical(uint64_t raw, double factor, double offset,
+                                   bool is_signed) {
+    if (is_signed)
+        return static_cast<double>(static_cast<int64_t>(raw)) * factor + offset;
     return static_cast<double>(raw) * factor + offset;
 }
 
-uint64_t CodecEngine::PhysicalToRaw(double physical, double factor, double offset) {
+uint64_t CodecEngine::PhysicalToRaw(double physical, double factor, double offset,
+                                     bool is_signed, uint32_t bit_length) {
     double raw_d = (physical - offset) / factor;
-    // Round to nearest integer, clamp to uint64 range
     double rounded = std::round(raw_d);
+    if (is_signed && bit_length > 0 && bit_length < 64) {
+        int64_t sval = static_cast<int64_t>(rounded);
+        int64_t smin = -(1LL << (bit_length - 1));
+        int64_t smax = (1LL << (bit_length - 1)) - 1;
+        if (sval > smax) sval = smax;
+        if (sval < smin) sval = smin;
+        return static_cast<uint64_t>(sval) & ((1ULL << bit_length) - 1);
+    }
     if (rounded >= static_cast<double>(UINT64_MAX)) return UINT64_MAX;
     if (rounded <= 0.0) return 0;
     return static_cast<uint64_t>(rounded);
@@ -232,7 +255,15 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
         uint64_t raw = ExtractBits(raw_bytes, size,
                                    sig.start_bit, sig.bit_length, sig.byte_order);
 
-        double physical = RawToPhysical(raw, sig.factor, sig.offset);
+        // Sign-extend if the signal uses signed representation
+        if (sig.is_signed && sig.bit_length < 64) {
+            uint64_t sign_bit = 1ULL << (sig.bit_length - 1);
+            if (raw & sign_bit)
+                raw |= ~((1ULL << sig.bit_length) - 1);
+        }
+
+        double physical = RawToPhysical(raw, sig.factor, sig.offset,
+                                        sig.is_signed);
 
         // Clamp to signal range
         if (sig.max_value > sig.min_value)
@@ -273,8 +304,9 @@ bool CodecEngine::EncodeFrame(
             if (sig.max_value > sig.min_value)
                 physical = std::clamp(physical, sig.min_value, sig.max_value);
 
-            uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset);
-            if (sig.bit_length < 64) {
+            uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset,
+                                          sig.is_signed, sig.bit_length);
+            if (!sig.is_signed && sig.bit_length < 64) {
                 uint64_t max_val = (1ULL << sig.bit_length) - 1;
                 if (raw > max_val) raw = max_val;
             }
@@ -298,8 +330,9 @@ bool CodecEngine::EncodeFrame(
         if (sig.max_value > sig.min_value)
             physical = std::clamp(physical, sig.min_value, sig.max_value);
 
-        uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset);
-        if (sig.bit_length < 64) {
+        uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset,
+                                      sig.is_signed, sig.bit_length);
+        if (!sig.is_signed && sig.bit_length < 64) {
             uint64_t max_val = (1ULL << sig.bit_length) - 1;
             if (raw > max_val) raw = max_val;
         }
