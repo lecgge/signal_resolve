@@ -1,4 +1,4 @@
-$versions = @{8="Python38"; 9="Python39"; 10="Python310"; 12="Python312"; 13="Python313"; 14="Python314"}
+$versions = @{8="Python38"; 9="Python39"; 10="Python310"; 11="Python311"; 12="Python312"; 13="Python313"; 14="Python314"}
 foreach ($v in ($versions.Keys | Sort-Object)) {
     $name = $versions[$v]
     $py = "$env:LOCALAPPDATA\Programs\Python\$name\python.exe"
