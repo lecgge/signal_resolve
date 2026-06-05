@@ -82,7 +82,9 @@ uint64_t CodecEngine::ExtractBits(
         }
 
         // Shift right to align LSB to bit 0
-        uint32_t shift = (first_byte == 0 && last_byte == 7 && bit_length == 64)
+        // Single-byte signal: value already in correct byte, no shift needed.
+        // Multi-byte: shift by the distance from the first byte's start.
+        uint32_t shift = (first_byte == last_byte)
                              ? 0u
                              : static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
         val >>= shift;
@@ -149,7 +151,7 @@ void CodecEngine::PackBits(
         uint32_t msb_in_byte  = (first_byte * 8 + lsb_in_byte + bit_length - 1) % 8;
 
         // Place value at correct position in big-endian layout
-        uint32_t shift = (first_byte == 0 && last_byte == 7 && bit_length == 64)
+        uint32_t shift = (first_byte == last_byte)
                              ? 0u
                              : static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
 
