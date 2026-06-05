@@ -184,12 +184,19 @@ public class UsdeClient implements Closeable {
             i++;
         }
 
+        // Convert String[] to Pointer[] for JNA
+        Pointer[] namePtrs = new Pointer[count];
+        for (int j = 0; j < count; j++) {
+            namePtrs[j] = new Memory(names[j].length() + 1);
+            namePtrs[j].setString(0, names[j]);
+        }
+
         int maxSize = 64;
         Pointer outPtr = new Memory(maxSize);
         outPtr.clear(maxSize);
 
         int rc = lib.USDE_EncodeFrame(handle, frameId,
-                names, values, count, outPtr, maxSize);
+                namePtrs, values, count, outPtr, maxSize);
 
         if (rc != 1) return new byte[0];
 
