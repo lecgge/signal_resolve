@@ -140,22 +140,27 @@ void CodecEngine::PackBits(
 
     } else {
         // ── Motorola: start_bit = MSB (DBC reversed bit numbering) ─────
+        //   DBC: bit 0 = byte0.MSB, bit 7 = byte0.LSB, bit 8 = byte1.MSB...
         //   lsb_in_byte = 7 - (start_bit % 8)
-        //   first_byte = start_bit / 8
-        //   last_byte  = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8
-        //   msb_in_byte = (first_byte * 8 + lsb_in_byte + bit_length - 1) % 8
+        //   first_byte  = start_bit / 8
+        //   last_byte   = (start_bit + bit_length - 1) / 8
+        //   msb_in_byte = (start_bit + bit_length - 1) % 8
         //
         uint32_t first_byte   = start_bit / 8;
         uint32_t lsb_in_byte  = 7 - (start_bit % 8);
         uint32_t last_byte    = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8;
-        uint32_t msb_in_byte  = (first_byte * 8 + lsb_in_byte + bit_length - 1) % 8;
+        uint32_t abs_msb      = first_byte * 8 + lsb_in_byte + bit_length - 1;
+        uint32_t msb_in_byte  = abs_msb - last_byte * 8;
+
+        if (last_byte >= size) return;
 
         // Place value at correct position in big-endian layout
-        uint32_t shift = (first_byte == last_byte)
-                             ? 0u
-                             : static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
+        // Iterate descending (last_byte → first_byte) so byte[last_byte]
+        // contains the LSB, matching ExtractBits' ascending assembly
+        // where byte[first_byte] is the MSB.
+        uint32_t shift = static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
 
-        for (uint32_t bi = first_byte; bi <= last_byte && bi < size; ++bi) {
+        for (uint32_t bi = last_byte; bi >= first_byte && bi < size; --bi) {
             uint32_t byte_idx = last_byte - bi;
             uint32_t bit_pos = byte_idx * 8 + shift;
             uint8_t new_byte = (bit_pos < 64)
@@ -164,8 +169,7 @@ void CodecEngine::PackBits(
 
             uint8_t sig_mask = 0xFF;
             if (bi == last_byte) {
-                sig_mask = (msb_in_byte == 7) ? 0x80
-                          : static_cast<uint8_t>(0xFF << (7 - msb_in_byte));
+                sig_mask = static_cast<uint8_t>((1u << (msb_in_byte + 1)) - 1);
             }
             if (bi == first_byte && lsb_in_byte > 0) {
                 sig_mask &= static_cast<uint8_t>(0xFF << lsb_in_byte);
@@ -255,10 +259,8 @@ bool CodecEngine::EncodeFrame(
 {
     if (!out_bytes || max_size == 0) return false;
 
-    // Zero-initialize output buffer
     std::memset(out_bytes, 0, max_size);
 
-    // ── Step 1: Find MUX selector and encode it first ───────────────────
     uint32_t mux_selector_value = 0;
     bool     has_mux = false;
 
@@ -272,6 +274,10 @@ bool CodecEngine::EncodeFrame(
                 physical = std::clamp(physical, sig.min_value, sig.max_value);
 
             uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset);
+            if (sig.bit_length < 64) {
+                uint64_t max_val = (1ULL << sig.bit_length) - 1;
+                if (raw > max_val) raw = max_val;
+            }
             PackBits(out_bytes, max_size,
                      sig.start_bit, sig.bit_length, sig.byte_order, raw);
             mux_selector_value = static_cast<uint32_t>(raw);
@@ -280,7 +286,6 @@ bool CodecEngine::EncodeFrame(
         break;
     }
 
-    // ── Step 2: Encode remaining signals with MUX routing ───────────────
     for (const auto& sig : frame.signals) {
         if (sig.is_mux_decoder) continue;
         if (sig.is_multiplexed && has_mux && sig.mux_value != mux_selector_value)
@@ -294,6 +299,10 @@ bool CodecEngine::EncodeFrame(
             physical = std::clamp(physical, sig.min_value, sig.max_value);
 
         uint64_t raw = PhysicalToRaw(physical, sig.factor, sig.offset);
+        if (sig.bit_length < 64) {
+            uint64_t max_val = (1ULL << sig.bit_length) - 1;
+            if (raw > max_val) raw = max_val;
+        }
         PackBits(out_bytes, max_size,
                  sig.start_bit, sig.bit_length, sig.byte_order, raw);
     }

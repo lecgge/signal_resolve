@@ -391,6 +391,36 @@ int main() {
     TestEncodeRoundTrip();
     TestBoundaryConditions();
 
+    // ── Diagnostic: Motorola PackBits ──────────────────────────────────
+    {
+        std::cout << "--- Diagnostic: Motorola PackBits ---\n";
+
+        // DTC: start_bit=7, bit_length=56, Motorola, value=72057594037927935
+        uint64_t dtc_max = 72057594037927935ULL;
+        uint8_t buf[8] = {};
+        usde::CodecEngine::PackBits(buf, 8, 7, 56,
+                                     usde::ByteOrder::MOTOROLA, dtc_max);
+        HexDump("PackBits DTC=max", buf, 8);
+        std::cout << "  Expected: 00 FF FF FF FF FF FF 00\n";
+
+        // Also test via EncodeFrame
+        usde::Frame f;
+        f.id = 1977; f.dlc = 7; f.name = "Test";
+        usde::Signal s;
+        s.name = "DTC"; s.start_bit = 7; s.bit_length = 56;
+        s.byte_order = usde::ByteOrder::MOTOROLA;
+        s.factor = 1.0; s.offset = 0.0;
+        f.signals.push_back(s);
+        uint8_t buf2[8] = {};
+        usde::CodecEngine::EncodeFrame(f, {{"DTC", 72057594037927935.0}}, buf2, 8);
+        HexDump("EncodeFrame DTC=max", buf2, 8);
+
+        // Check PhysicalToRaw
+        uint64_t ptr = usde::CodecEngine::PhysicalToRaw(72057594037927935.0, 1.0, 0.0);
+        std::cout << "  PhysicalToRaw(72057594037927935) = " << ptr
+                  << " (0x" << std::hex << ptr << std::dec << ")\n";
+    }
+
     // ── Diagnostic: 64-bit Motorola decode ──────────────────────────────
     {
         std::cout << "--- Diagnostic: 64-bit Motorola (bit=7, len=64) ---\n";
