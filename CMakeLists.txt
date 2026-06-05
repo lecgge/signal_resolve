@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(usde LANGUAGES CXX)
+project(usde LANGUAGES CXX VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,12 +13,13 @@ set(USDE_CORE_SOURCES
     src/codec_engine.cpp
 )
 
-set(USDE_CORE_HEADERS
+set(USDE_PUBLIC_HEADERS
     include/usde_types.h
     include/dbc_parser.h
     include/ldf_parser.h
     include/arxml_parser.h
     include/codec_engine.h
+    include/usde_c_api.h
 )
 
 set(USDE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -36,15 +37,12 @@ target_include_directories(usde_demo PRIVATE ${USDE_INCLUDE_DIR})
 add_library(usde SHARED
     src/usde_c_api.cpp
     ${USDE_CORE_SOURCES}
-    ${USDE_CORE_HEADERS}
 )
 target_include_directories(usde PUBLIC ${USDE_INCLUDE_DIR})
-
-# Export all symbols on Windows for simplicity; production builds should use
-# a .def file or explicit __declspec(dllexport).
 set_target_properties(usde PROPERTIES
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
+    PUBLIC_HEADER "${USDE_PUBLIC_HEADERS}"
 )
 
 if(MSVC)
@@ -68,5 +66,22 @@ if(pybind11_FOUND)
     endif()
     message(STATUS "pybind11 found — building usde_python module")
 else()
-    message(STATUS "pybind11 not found — skipping usde_python (install via pip or vcpkg)")
+    message(STATUS "pybind11 not found — skipping usde_python (pip install pybind11)")
+endif()
+
+# ─── 4. Install targets ─────────────────────────────────────────────────────
+
+include(GNUInstallDirs)
+
+install(TARGETS usde
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/usde
+)
+
+if(pybind11_FOUND)
+    install(TARGETS usde_python
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
 endif()
