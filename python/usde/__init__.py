@@ -180,6 +180,29 @@ class Network:
         except Exception:
             return []
 
+    def cluster_names(self):
+        """Get list of cluster names (ARXML only)."""
+        try:
+            return self._net.cluster_names()
+        except Exception:
+            return []
+
+    def set_cluster(self, name):
+        """Set active cluster. Subsequent decode/encode only look up frames in this cluster."""
+        return self._net.set_cluster(name)
+
+    def clear_cluster(self):
+        """Clear cluster selection — back to flat (all clusters merged) view."""
+        self._net.clear_cluster()
+
+    @property
+    def active_cluster(self):
+        """Current active cluster name, or empty string if none."""
+        try:
+            return self._net.active_cluster()
+        except Exception:
+            return ""
+
     def frame_ids(self):
         """Return list of all loaded frame IDs."""
         ids = []

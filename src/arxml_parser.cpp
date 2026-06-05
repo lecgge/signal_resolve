@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace usde {
@@ -157,9 +158,86 @@ bool LoadARXML(const std::filesystem::path& file_path,
         }
     };
     processPduElement("NM-PDU");
+    processPduElement("I-SIGNAL-I-PDU");
     processPduElement("I-PDU");
     processPduElement("SECURED-I-PDU");
     processPduElement("CONTAINER-I-PDU");
+
+    // ── 2b. Resolve CONTAINER-I-PDU → PDU-TRIGGERING → inner I-PDU ─────
+    // Build PDU-TRIGGERING short-name → inner I-PDU name map
+    std::unordered_map<std::string, std::string> ptrig_to_inner_pdu;
+    {
+        size_t pos = 0;
+        while (true) {
+            auto open = FindOpenTag(xml, "PDU-TRIGGERING", pos);
+            if (open == std::string::npos) break;
+            auto close = FindCloseTag(xml, "PDU-TRIGGERING", open);
+            auto name = ExtractTagContent(xml, "SHORT-NAME", open);
+            auto iref = ExtractTagContent(xml, "I-PDU-REF", open);
+            if (!name.empty() && !iref.empty()) {
+                ptrig_to_inner_pdu[name] = PathBaseName(iref);
+            }
+            pos = close;
+        }
+    }
+
+    // Resolve CONTAINER-I-PDU contained PDUs and inherit their mappings
+    std::unordered_set<std::string> contained_inner_pdus; // inner PDUs merged into a container
+    std::unordered_map<std::string, std::string> inner_to_container; // inner_pdu → container_pdu
+    {
+        size_t pos = 0;
+        while (true) {
+            auto open = FindOpenTag(xml, "CONTAINER-I-PDU", pos);
+            if (open == std::string::npos) break;
+            auto close = FindCloseTag(xml, "CONTAINER-I-PDU", open);
+            auto cname = ExtractTagContent(xml, "SHORT-NAME", open);
+            if (cname.empty()) { pos = close; continue; }
+
+            // Already has direct mappings? Skip
+            bool has_mappings = false;
+            for (auto& m : mappings) { if (m.pdu_name == cname) { has_mappings = true; break; } }
+            if (has_mappings) { pos = close; continue; }
+
+            // Resolve contained PDUs via PDU-TRIGGERING refs
+            size_t rpos = open;
+            while (rpos < close) {
+                auto ref = FindOpenTag(xml, "CONTAINED-PDU-TRIGGERING-REF", rpos);
+                if (ref == std::string::npos || ref >= close) break;
+                auto ref_tag_end = xml.find('>', ref);
+                if (ref_tag_end == std::string::npos || ref_tag_end >= close) break;
+                auto ref_gt = ref_tag_end + 1;
+                auto ref_close_tag = xml.find("</CONTAINED-PDU-TRIGGERING-REF>", ref_gt);
+                if (ref_close_tag == std::string::npos || ref_close_tag >= close) break;
+                auto ref_content = xml.substr(ref_gt, ref_close_tag - ref_gt);
+                auto trig_name = PathBaseName(ref_content);
+
+                auto inner_it = ptrig_to_inner_pdu.find(trig_name);
+                if (inner_it != ptrig_to_inner_pdu.end()) {
+                    contained_inner_pdus.insert(inner_it->second);
+                    inner_to_container[inner_it->second] = cname;
+                    // Clone mappings from inner PDU to container
+                    for (const auto& m : mappings) {
+                        if (m.pdu_name == inner_it->second) {
+                            MappingEntry clone = m;
+                            clone.pdu_name = cname;
+                            mappings.push_back(clone);
+                        }
+                    }
+                    // Inherit header_id / byte_length from inner PDU
+                    auto ci = pdu_defs.find(cname);
+                    auto ii = pdu_defs.find(inner_it->second);
+                    if (ci != pdu_defs.end() && ii != pdu_defs.end()) {
+                        if (ci->second.header_id == 0 && ii->second.header_id != 0)
+                            ci->second.header_id = ii->second.header_id;
+                        if (ci->second.byte_length == 0 && ii->second.byte_length != 0)
+                            ci->second.byte_length = ii->second.byte_length;
+                    }
+                }
+                rpos = ref_close_tag;
+            }
+            pos = close;
+        }
+    }
 
     // ── 3. Extract CAN-FRAME definitions & PDU-TO-FRAME-MAPPING ─────────
     struct FrameDef {
@@ -192,10 +270,32 @@ bool LoadARXML(const std::filesystem::path& file_path,
                     pdu_to_frame[pn] = name;
                     auto sp = ExtractTagContent(xml, "START-POSITION", mopen);
                     if (!sp.empty()) pdu_start_pos[pn] = static_cast<uint32_t>(std::stoul(sp));
+                    // If the PDU is a container, also map its inner PDUs to this frame
+                    auto ci = pdu_defs.find(pn);
+                    if (ci != pdu_defs.end()) {
+                        for (const auto& m : mappings) {
+                            if (m.pdu_name == pn) {
+                                // Already has direct mappings, no need to cascade
+                                break;
+                            }
+                        }
+                    }
                 }
                 mpos = mclose;
             }
             pos = close;
+        }
+    }
+
+    // Cascade: inner PDUs of containers inherit the frame mapping
+    for (auto& [trig_name, inner_pdu] : ptrig_to_inner_pdu) {
+        // Find the container that contains this inner PDU
+        auto ic = inner_to_container.find(inner_pdu);
+        if (ic == inner_to_container.end()) continue;
+        // Find the frame for the container
+        auto p2f = pdu_to_frame.find(ic->second);
+        if (p2f != pdu_to_frame.end()) {
+            pdu_to_frame[inner_pdu] = p2f->second;
         }
     }
 
@@ -253,10 +353,15 @@ bool LoadARXML(const std::filesystem::path& file_path,
     for (auto& m : mappings) pdu_sigs[m.pdu_name].push_back(&m);
 
     for (auto& [pdu_name, sig_ptrs] : pdu_sigs) {
-        // Resolve PDU → Frame name
-        std::string frame_name = pdu_name;
+        // Skip inner PDUs already merged into a CONTAINER-I-PDU
+        if (contained_inner_pdus.count(pdu_name)) continue;
+
+        // Skip PDUs with no frame mapping (orphan I-SIGNAL-I-PDUs)
         auto ptf_it = pdu_to_frame.find(pdu_name);
-        if (ptf_it != pdu_to_frame.end()) frame_name = ptf_it->second;
+        if (ptf_it == pdu_to_frame.end()) continue;
+
+        // Resolve PDU → Frame name
+        std::string frame_name = ptf_it->second;
 
         // Get or create Frame
         uint32_t fid = 0;

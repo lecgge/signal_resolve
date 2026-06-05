@@ -38,6 +38,52 @@ class PyNetwork {
 public:
     usde::NetworkCluster cluster;
 
+    // ── Cluster selection ────────────────────────────────────────────────
+
+    bool set_cluster(const std::string& name) {
+        if (cluster.clusters.find(name) != cluster.clusters.end()) {
+            active_cluster_ = name;
+            return true;
+        }
+        return false;
+    }
+
+    std::string active_cluster() const {
+        return active_cluster_;
+    }
+
+    py::list cluster_names() const {
+        py::list names;
+        for (auto& [name, cl] : cluster.clusters)
+            names.append(name);
+        return names;
+    }
+
+    void clear_cluster() {
+        active_cluster_.clear();
+    }
+
+private:
+    std::string active_cluster_;
+
+    const usde::Frame* find_frame(uint32_t frame_id) const {
+        if (!active_cluster_.empty()) {
+            auto ci = cluster.clusters.find(active_cluster_);
+            if (ci != cluster.clusters.end()) {
+                auto fi = ci->second.frames.find(frame_id);
+                if (fi != ci->second.frames.end()) return &fi->second;
+            }
+            return nullptr;
+        }
+        auto it = cluster.frames.find(frame_id);
+        if (it != cluster.frames.end()) return &it->second;
+        return nullptr;
+    }
+
+public:
+
+    // ── Database loading ─────────────────────────────────────────────────
+
     bool load_dbc(const std::string& path) {
         return usde::LoadDBC(path, cluster);
     }
@@ -51,17 +97,23 @@ public:
     }
 
     size_t frame_count() const {
+        if (!active_cluster_.empty()) {
+            auto ci = cluster.clusters.find(active_cluster_);
+            if (ci != cluster.clusters.end())
+                return ci->second.frames.size();
+            return 0;
+        }
         return cluster.frames.size();
     }
 
     py::list decode_frame(uint32_t frame_id,
                           const std::vector<uint8_t>& raw_bytes) const {
-        auto it = cluster.frames.find(frame_id);
-        if (it == cluster.frames.end())
+        auto f = find_frame(frame_id);
+        if (!f)
             throw py::key_error("Frame ID not found: " + std::to_string(frame_id));
 
         auto decoded = usde::CodecEngine::DecodeFrame(
-            it->second, raw_bytes.data(), raw_bytes.size());
+            *f, raw_bytes.data(), raw_bytes.size());
         return DecodeToPyList(decoded);
     }
 
@@ -69,33 +121,31 @@ public:
         uint32_t frame_id,
         const std::unordered_map<std::string, double>& values) const
     {
-        auto it = cluster.frames.find(frame_id);
-        if (it == cluster.frames.end())
+        auto f = find_frame(frame_id);
+        if (!f)
             throw py::key_error("Frame ID not found: " + std::to_string(frame_id));
 
-        // Use DLC as buffer size
-        size_t buf_size = it->second.dlc;
+        size_t buf_size = f->dlc;
         if (buf_size == 0) buf_size = 8;
         std::vector<uint8_t> buf(buf_size, 0);
 
-        usde::CodecEngine::EncodeFrame(it->second, values,
+        usde::CodecEngine::EncodeFrame(*f, values,
                                        buf.data(), buf.size());
         return buf;
     }
 
     py::dict frame_info(uint32_t frame_id) const {
-        auto it = cluster.frames.find(frame_id);
-        if (it == cluster.frames.end())
+        auto f = find_frame(frame_id);
+        if (!f)
             throw py::key_error("Frame ID not found: " + std::to_string(frame_id));
 
-        const auto& f = it->second;
         py::dict d;
-        d["id"]   = f.id;
-        d["name"] = f.name;
-        d["dlc"]  = f.dlc;
+        d["id"]   = f->id;
+        d["name"] = f->name;
+        d["dlc"]  = f->dlc;
 
         py::list sigs;
-        for (auto& s : f.signals) {
+        for (auto& s : f->signals) {
             py::dict sd;
             sd["name"]       = s.name;
             sd["start_bit"]  = s.start_bit;
@@ -112,7 +162,7 @@ public:
         d["signals"] = sigs;
 
         py::list pdu_list;
-        for (auto& p : f.pdus) {
+        for (auto& p : f->pdus) {
             py::dict pd;
             pd["name"] = p.name;
             pd["header_id"] = p.header_id;
@@ -180,5 +230,14 @@ PYBIND11_MODULE(usde_python, m) {
              py::arg("frame_id"),
              "Get frame metadata (id, name, dlc, signals, pdus, clusters).")
         .def("clusters", &PyNetwork::cluster_list,
-             "Get list of cluster dicts [{name, bus_type, baudrate, can_fd, frame_ids}].");
+             "Get list of cluster dicts [{name, bus_type, baudrate, can_fd, frame_ids}].")
+        .def("set_cluster", &PyNetwork::set_cluster,
+             py::arg("name"),
+             "Set active cluster for subsequent frame operations. Returns True on success.")
+        .def("active_cluster", &PyNetwork::active_cluster,
+             "Get current active cluster name (empty string if none).")
+        .def("cluster_names", &PyNetwork::cluster_names,
+             "Get list of all cluster names.")
+        .def("clear_cluster", &PyNetwork::clear_cluster,
+             "Clear the active cluster selection (back to master view).");
 }
