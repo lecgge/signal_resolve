@@ -117,6 +117,7 @@ public:
             pd["name"] = p.name;
             pd["uuid"] = p.uuid;
             pd["byte_length"] = p.byte_length;
+            pd["start_position"] = p.start_position;
             py::list psigs;
             for (auto& s : p.signals) {
                 py::dict sd;

@@ -176,6 +176,7 @@ bool LoadARXML(const std::filesystem::path& file_path,
     };
     std::unordered_map<std::string, FrameDef> frame_defs;
     std::unordered_map<std::string, std::string> pdu_to_frame;
+    std::unordered_map<std::string, uint32_t>    pdu_start_pos;   // pdu_name -> start byte in frame
     {
         size_t pos = 0;
         while (true) {
@@ -194,7 +195,12 @@ bool LoadARXML(const std::filesystem::path& file_path,
                 if (mopen == std::string::npos || mopen >= close) break;
                 auto mclose = FindCloseTag(xml, "PDU-TO-FRAME-MAPPING", mopen);
                 auto pref = ExtractTagContent(xml, "PDU-REF", mopen);
-                if (!pref.empty()) pdu_to_frame[PathBaseName(pref)] = name;
+                if (!pref.empty()) {
+                    auto pn = PathBaseName(pref);
+                    pdu_to_frame[pn] = name;
+                    auto sp = ExtractTagContent(xml, "START-POSITION", mopen);
+                    if (!sp.empty()) pdu_start_pos[pn] = static_cast<uint32_t>(std::stoul(sp));
+                }
                 mpos = mclose;
             }
             pos = close;
@@ -286,6 +292,8 @@ bool LoadARXML(const std::filesystem::path& file_path,
             pdu.byte_length = pi->second.byte_length;
             pdu.uuid = pi->second.uuid;
         }
+        auto psp = pdu_start_pos.find(pdu_name);
+        if (psp != pdu_start_pos.end()) pdu.start_position = psp->second;
 
         for (auto* mp : sig_ptrs) {
             Signal sig;
