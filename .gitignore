@@ -37,3 +37,5 @@ Thumbs.db
 .DS_Store
 
 __pycache__/
+python/usde/*.pyd
+python/usde/*.so

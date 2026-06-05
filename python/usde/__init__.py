@@ -27,15 +27,25 @@ import sys as _sys
 
 def _find_native_module():
     """Find usde_python native module (.pyd/.so)."""
-    # 1. Try standard import (if installed via pip/setup.py)
+    pkg_dir = _os.path.dirname(_os.path.abspath(__file__))
+
+    # 1. Look in the same directory as this __init__.py (copied .pyd)
+    if pkg_dir not in _sys.path:
+        _sys.path.insert(0, pkg_dir)
     try:
         import usde_python
         return usde_python
     except ImportError:
         pass
 
-    # 2. Look relative to this file's parent's parent (build/Release)
-    pkg_dir = _os.path.dirname(_os.path.abspath(__file__))
+    # 2. Try standard import (if installed via pip)
+    try:
+        import usde_python
+        return usde_python
+    except ImportError:
+        pass
+
+    # 3. Look relative to build directory (development layout)
     for search in [
         _os.path.join(pkg_dir, "..", "..", "build", "Release"),
         _os.path.join(pkg_dir, "..", "..", "build"),
@@ -51,9 +61,12 @@ def _find_native_module():
             pass
 
     raise ImportError(
-        "Cannot find usde_python native module.\n"
-        "Build it with: cmake --build build --config Release --target usde_python\n"
-        "Or install with: pip install ."
+        "Cannot find usde_python native module (.pyd/.so).\n\n"
+        "If you are developing USDE:\n"
+        "  1. Build: cmake --build build --config Release --target usde_python\n"
+        "  2. Copy build/Release/usde_python*.pyd to usde/ directory\n\n"
+        "If you are using USDE as a package:\n"
+        "  pip install .  (from the usde project root)\n"
     )
 
 _native = _find_native_module()

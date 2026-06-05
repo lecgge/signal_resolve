@@ -65,6 +65,13 @@ if(pybind11_FOUND)
         target_compile_options(usde_python PRIVATE /utf-8)
     endif()
     message(STATUS "pybind11 found — building usde_python module")
+    # Post-build: copy .pyd to python/usde/ for self-contained package
+    add_custom_command(TARGET usde_python POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:usde_python>"
+            "${CMAKE_CURRENT_SOURCE_DIR}/python/usde/"
+        COMMENT "Copying usde_python to python/usde/"
+    )
 else()
     message(STATUS "pybind11 not found — skipping usde_python (pip install pybind11)")
 endif()
