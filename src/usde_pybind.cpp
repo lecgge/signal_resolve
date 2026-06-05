@@ -115,6 +115,7 @@ public:
         for (auto& p : f.pdus) {
             py::dict pd;
             pd["name"] = p.name;
+            pd["uuid"] = p.uuid;
             pd["byte_length"] = p.byte_length;
             py::list psigs;
             for (auto& s : p.signals) {

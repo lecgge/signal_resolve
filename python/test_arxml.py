@@ -18,6 +18,8 @@ for fid in net.frame_ids()[:8]:
     for pdu in info.pdus:
         print(f"  PDU {pdu['name']} ({pdu['byte_length']} bytes, "
               f"{len(pdu['signals'])} signals)")
+        if pdu.get("uuid"):
+            print(f"    uuid={pdu['uuid']}")
         for s in pdu["signals"][:3]:
             print(f"    {s['name']}: bit={s['start_bit']} "
                   f"len={s['bit_length']} {s['byte_order']}")

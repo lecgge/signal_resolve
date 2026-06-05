@@ -30,6 +30,7 @@ struct Signal {
 
 struct Pdu {
     std::string name;
+    std::string uuid;          // AUTOSAR UUID (optional)
     uint32_t    byte_length = 0;
     std::vector<Signal> signals;
 };

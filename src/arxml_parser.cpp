@@ -101,6 +101,7 @@ bool LoadARXML(const std::filesystem::path& file_path,
     // ── 2. Extract PDU definitions (name, length, signal mappings) ──────
     struct PduDef {
         std::string name;
+        std::string uuid;
         uint32_t    byte_length = 0;
     };
     std::unordered_map<std::string, PduDef> pdu_defs;
@@ -125,6 +126,17 @@ bool LoadARXML(const std::filesystem::path& file_path,
 
             PduDef pd;
             pd.name = pdu_name;
+            auto gt = xml.find('>', open);
+            if (gt != std::string::npos) {
+                std::string tag_line = xml.substr(open, gt - open + 1);
+                auto upos = tag_line.find("UUID=\"");
+                if (upos != std::string::npos) {
+                    upos += 6;  // skip UUID="
+                    auto uend = tag_line.find('"', upos);
+                    if (uend != std::string::npos)
+                        pd.uuid = tag_line.substr(upos, uend - upos);
+                }
+            }
             auto plen = ExtractTagContent(xml, "LENGTH", open);
             if (!plen.empty())
                 pd.byte_length = static_cast<uint32_t>(std::stoul(plen));
@@ -270,7 +282,10 @@ bool LoadARXML(const std::filesystem::path& file_path,
         Pdu pdu;
         pdu.name = pdu_name;
         auto pi = pdu_defs.find(pdu_name);
-        if (pi != pdu_defs.end()) pdu.byte_length = pi->second.byte_length;
+        if (pi != pdu_defs.end()) {
+            pdu.byte_length = pi->second.byte_length;
+            pdu.uuid = pi->second.uuid;
+        }
 
         for (auto* mp : sig_ptrs) {
             Signal sig;

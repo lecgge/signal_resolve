@@ -1,126 +1,117 @@
 @echo off
 setlocal enabledelayedexpansion
 REM ================================================================
-REM  USDE — Build Python bindings for all installed Python versions
+REM  USDE - Build .pyd for Python 3.8 to 3.14
 REM
-REM  Scans for Python 3.8 through 3.14, installs pybind11 in each,
-REM  builds the native module, and copies .pyd to python/usde/.
-REM
-REM  Usage: build_all_python [--python-versions X.Y X.Y ...]
+REM  Usage:
+REM    build_all_python               auto-scan installed versions
+REM    build_all_python 3.11 3.12     specific versions
+REM    build_all_python --clean       remove build dirs
 REM ================================================================
 
-set SRC_DIR=%~dp0
-set BUILD_BASE=%SRC_DIR%build_py
+set SRC=%~dp0
+set DST=%SRC%python\usde
+set BDIR=%SRC%build_py
 
-echo ================================================================
-echo  USDE Python Build — scanning for Python installations...
-echo ================================================================
+if "%~1"=="--clean" (
+    for /d %%d in (%BDIR%_*) do rmdir /s /q "%%d" 2>nul
+    del "%DST%\usde_python.*.pyd" 2>nul
+    echo Cleaned.
+    goto :EOF
+)
 
-REM ── Discover Python installations ────────────────────────────────
+echo === USDE Python Build: 3.8 - 3.14 ===
+echo.
 
-set PYLIST=
-if "%~1"=="--python-versions" (
-    shift
-    :next_ver
-    if not "%~1"=="" (
-        set PYLIST=!PYLIST! %~1
-        shift
-        goto next_ver
-    )
-) else (
-    REM Auto-scan: check common install locations
-    for %%v in (8 9 10 11 12 13 14) do (
-        for %%d in (
-            "C:\Python3%%v\python.exe"
-            "C:\Program Files\Python3%%v\python.exe"
-            "%LOCALAPPDATA%\Programs\Python\Python3%%v\python.exe"
-            "%APPDATA%\Python\Python3%%v\python.exe"
-        ) do (
-            if exist %%d (
-                for /f "tokens=2 delims=. " %%a in ('%%d -c "import sys; print(sys.version)" 2^>nul') do (
-                    set PYLIST=!PYLIST! %%a
-                )
-            )
+REM --- Collect versions ---
+set VL=
+if "%~1"=="" (
+    for /L %%v in (8,1,14) do (
+        for %%d in ("%LOCALAPPDATA%\Programs\Python\Python3%%v\python.exe") do (
+            if exist %%d call :ADD %%v
         )
     )
+) else (
+    :LOOP
+    if not "%~1"=="" (
+        call :ADD %~1
+        shift
+        goto LOOP
+    )
 )
 
-if "%PYLIST%"=="" (
-    echo ERROR: No Python installations found.
-    echo Install Python 3.8-3.14 and try again, or specify versions:
-    echo   build_all_python --python-versions 3.11 3.14
+if "%VL%"=="" (
+    echo No Python found. Install from python.org or:
+    echo   winget install Python.Python.3.11
     exit /b 1
 )
+echo Targets: %VL%
+echo.
 
-echo Found Python versions:%PYLIST%
+set EC=0
+for %%v in (%VL%) do call :BUILD %%v
 
-REM ── Build for each version ───────────────────────────────────────
+echo === Done: %EC% errors ===
+exit /b %EC%
 
-for %%v in (%PYLIST%) do (
-    echo.
-    echo --- Building for Python %%v ---
+REM ====== ADD ======================================================
+:ADD
+    set v=%1
+    if %v% geq 8 if %v% leq 14 (
+        for %%x in (%VL%) do if "%%x"=="%v%" exit /b 0
+        set VL=!VL! %v%
+    )
+    exit /b 0
 
-    REM Find python executable
+REM ====== BUILD ====================================================
+:BUILD
+    set PV=%1
+    echo --- Python 3.%PV% ---
+
     set PY=
-    for %%d in (
-        "C:\Python%%v\python.exe"
-        "C:\Program Files\Python%%v\python.exe"
-        "%LOCALAPPDATA%\Programs\Python\Python%%v\python.exe"
-        "%APPDATA%\Python\Python%%v\python.exe"
-    ) do (
-        if exist %%d set PY=%%d
+    for %%d in ("%LOCALAPPDATA%\Programs\Python\Python3%PV%\python.exe") do (
+        if exist %%d set "PY=%%d"
     )
     if "!PY!"=="" (
-        echo   WARNING: Cannot find python.exe for %%v — skipping
-        goto :skip
+        echo   SKIP: not found at %LOCALAPPDATA%\Programs\Python\Python3%PV%
+        set /a EC+=1
+        goto :EOF
     )
 
-    REM Install pybind11
-    echo   Installing pybind11...
     "!PY!" -m pip install pybind11 -q 2>nul
     if errorlevel 1 (
-        echo   WARNING: Failed to install pybind11 for %%v — skipping
-        goto :skip
+        echo   SKIP: pip install pybind11 failed
+        set /a EC+=1
+        goto :EOF
     )
 
-    REM Get pybind11 cmake directory
-    for /f "delims=" %%d in ('"!PY!" -m pybind11 --cmakedir 2^>nul') do set PB11_DIR=%%d
-    if "!PB11_DIR!"=="" (
-        echo   WARNING: pybind11 not found for %%v — skipping
-        goto :skip
+    for /f %%d in ('"!PY!" -m pybind11 --cmakedir 2^>nul') do set PB=%%d
+    if "!PB!"=="" (
+        echo   SKIP: pybind11 cmake dir not found
+        set /a EC+=1
+        goto :EOF
     )
 
-    REM Configure and build
-    set BUILD_DIR=%BUILD_BASE%_%%v
-    echo   Configuring CMake...
-    cmake -S "%SRC_DIR%" -B "!BUILD_DIR!" -G "Visual Studio 17 2022" -A x64 ^
-        -DPYTHON_EXECUTABLE="!PY!" -Dpybind11_DIR="!PB11_DIR!" ^
-        -DPYBIND11_FINDPYTHON=ON >nul 2>&1
+    set BD=%BDIR%_%PV%
+    if exist "!BD!\CMakeCache.txt" del "!BD!\CMakeCache.txt" 2>nul
+
+    cmake -S "%SRC%" -B "!BD!" -G "Visual Studio 17 2022" -A x64 ^
+        -DPYTHON_EXECUTABLE="!PY!" -Dpybind11_DIR="!PB!" >nul 2>&1
     if errorlevel 1 (
-        echo   ERROR: CMake configure failed for %%v
-        goto :skip
+        echo   FAIL: cmake configure
+        set /a EC+=1
+        goto :EOF
     )
 
-    echo   Building...
-    cmake --build "!BUILD_DIR!" --config Release --target usde_python >nul 2>&1
+    cmake --build "!BD!" --config Release --target usde_python >nul 2>&1
     if errorlevel 1 (
-        echo   ERROR: Build failed for %%v
-        goto :skip
+        echo   FAIL: build
+        set /a EC+=1
+        goto :EOF
     )
 
-    REM Copy .pyd to package
-    for %%f in ("!BUILD_DIR!\Release\usde_python*.pyd") do (
-        copy /Y "%%f" "%SRC_DIR%python\usde\" >nul
-        echo   Done: %%f -^> python/usde/
+    for %%f in ("!BD!\Release\usde_python*.pyd") do (
+        copy /Y "%%f" "%DST%\" >nul 2>nul
+        echo   OK: %%~nxf
     )
-
-    :skip
-)
-
-echo.
-echo ================================================================
-echo  All builds complete.
-echo  Package ready at: %SRC_DIR%python\usde\
-echo.
-echo  To use: copy the python/usde/ directory to your project.
-echo ================================================================
+    goto :EOF
