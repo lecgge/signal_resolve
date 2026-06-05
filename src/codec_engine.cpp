@@ -153,9 +153,17 @@ void CodecEngine::PackBits(
 
         if (last_byte >= size) return;
 
-        uint32_t shift = (first_byte == last_byte)
-            ? (start_bit % 8)
-            : (static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte);
+        // Single-byte: place value at bit (start_bit % 8) to match ExtractBits
+        if (first_byte == last_byte) {
+            uint32_t bit_pos = start_bit % 8;
+            uint64_t m = (bit_length == 64) ? ~0ULL : ((1ULL << bit_length) - 1);
+            uint8_t  mask = static_cast<uint8_t>(m << bit_pos);
+            uint8_t  val  = static_cast<uint8_t>((raw_value & m) << bit_pos);
+            data[first_byte] = (data[first_byte] & ~mask) | val;
+            return;
+        }
+
+        uint32_t shift = static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
 
         for (uint32_t bi = last_byte; bi >= first_byte && bi < size; --bi) {
             // This byte covers bits [(last_byte-bi)*8  .. (last_byte-bi)*8+7]
@@ -262,16 +270,22 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
 
         if (has_pdu_routing) {
             for (const auto& pdu : frame.pdus) {
-                if (pdu.header_id == 0) continue;
                 for (const auto& ps : pdu.signals) {
                     if (ps.name == sig.name) {
-                        if (active_header_id != 0 && pdu.header_id != active_header_id)
-                            skip = true;
-                        effective_start = sig.start_bit + 32;
+                        if (active_header_id != 0) {
+                            if (pdu.header_id == active_header_id)
+                                effective_start = sig.start_bit + 32;
+                            else
+                                skip = true;
+                        } else {
+                            // active_header_id==0: only decode PDUs with header_id==0
+                            if (pdu.header_id != 0) skip = true;
+                        }
                         goto found_pdu;
                     }
                 }
             }
+            // signal is not in any PDU: decode as plain frame signal
             found_pdu:;
         }
 
