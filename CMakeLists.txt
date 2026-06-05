@@ -53,6 +53,19 @@ else()
 endif()
 
 # ─── 3. Python extension (pybind11) — optional ──────────────────────────────
+#   Set -DUSDE_PYTHON_EXECUTABLE=... to target a specific Python version.
+#   Set -DUSDE_PYTHON_VERSION=3.11 to search for a specific version.
+
+set(USDE_PYTHON_EXECUTABLE "" CACHE FILEPATH "Python interpreter for pybind11 module")
+set(USDE_PYTHON_VERSION "" CACHE STRING "Target Python version (e.g. 3.11)")
+
+if(USDE_PYTHON_EXECUTABLE)
+    set(PYBIND11_FINDPYTHON ON)
+    set(PYTHON_EXECUTABLE "${USDE_PYTHON_EXECUTABLE}")
+elseif(USDE_PYTHON_VERSION)
+    set(PYBIND11_FINDPYTHON ON)
+    set(PYBIND11_PYTHON_VERSION "${USDE_PYTHON_VERSION}")
+endif()
 
 find_package(pybind11 QUIET)
 if(pybind11_FOUND)

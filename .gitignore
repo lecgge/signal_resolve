@@ -39,3 +39,4 @@ Thumbs.db
 __pycache__/
 python/usde/*.pyd
 python/usde/*.so
+build_py*/

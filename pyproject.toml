@@ -22,10 +22,3 @@ Homepage = "https://github.com/example/usde"
 [tool.setuptools]
 package-dir = { "" = "python" }
 packages = ["usde"]
-
-[tool.setuptools.ext-modules]
-# Native extension built by CMake or setup.py
-# Users should first build the C++ project:
-#   cmake -S . -B build -G "Visual Studio 17 2022" -A x64
-#   cmake --build build --config Release --target usde_python
-# Then copy build/Release/usde_python*.pyd to python/usde/

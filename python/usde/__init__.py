@@ -60,14 +60,35 @@ def _find_native_module():
         except ImportError:
             pass
 
-    raise ImportError(
-        "Cannot find usde_python native module (.pyd/.so).\n\n"
-        "If you are developing USDE:\n"
-        "  1. Build: cmake --build build --config Release --target usde_python\n"
-        "  2. Copy build/Release/usde_python*.pyd to usde/ directory\n\n"
-        "If you are using USDE as a package:\n"
-        "  pip install .  (from the usde project root)\n"
-    )
+    # Build helpful error message
+    import sys as _sys2
+    py_ver = f"{_sys2.version_info.major}.{_sys2.version_info.minor}"
+    pyd_tag = f"cp{_sys2.version_info.major}{_sys2.version_info.minor}"
+
+    # Check what .pyd files are available in the package directory
+    available = []
+    try:
+        for f in _os.listdir(pkg_dir):
+            if f.startswith("usde_python.") and (f.endswith(".pyd") or f.endswith(".so")):
+                available.append(f)
+    except OSError:
+        pass
+
+    msg = f"Cannot find usde_python native module for Python {py_ver}.\n\n"
+    msg += f"Your Python: {py_ver} (needs *{pyd_tag}*.pyd)\n\n"
+    if available:
+        msg += "Found these .pyd files in usde/:\n"
+        for a in available:
+            msg += f"  {a}\n"
+        msg += "\nThese are for different Python versions.\n"
+        msg += "Rebuild for your Python:\n"
+    else:
+        msg += "No .pyd files found in usde/ directory.\n"
+    msg += "  pip install pybind11\n"
+    msg += "  cmake --build build --config Release --target usde_python\n"
+    msg += "  Copy build/Release/usde_python*.pyd to usde/"
+
+    raise ImportError(msg)
 
 _native = _find_native_module()
 
