@@ -6,19 +6,33 @@
 namespace usde {
 
 // ============================================================================
-// Bit-Stream Extractor
+// Bit-Stream Extractor / Packer
 // ============================================================================
 //
 // Intel (Little-Endian, LSB first):
-//   Bit numbering is absolute from byte 0, bit 0 upward.
 //   start_bit = position of the signal's LSB.
 //   Signal occupies bits [start_bit, start_bit + bit_length - 1].
+//   Bytes assembled in little-endian order from LSB byte to MSB byte.
 //
 // Motorola (Big-Endian, MSB first):
-//   Bit 0 is byte 0 bit 0; bit 7 is byte 0 bit 7; bit 8 is byte 1 bit 0...
-//   start_bit = position of the signal's MSB.
-//   Signal occupies bits [start_bit - bit_length + 1, start_bit].
-//   Bytes increase as we go from MSB to LSB.
+//   DBC start_bit = position of the signal's MSB.
+//   MSB_byte = start_bit / 8,  MSB_std_bit = start_bit % 8
+//   The MSB (highest value bit) is at byte MSB_byte, std bit MSB_std_bit.
+//   The signal extends from MSB_std_bit down to std 0 within MSB_byte,
+//   then continues in subsequent bytes (MSB_byte+1, etc.) with full 8-bit
+//   occupancy, ending in LSB_byte where it may occupy only the top bits.
+//
+//   Key formulas for multi-byte Motorola:
+//     bits_in_msb  = start_bit % 8 + 1
+//     remaining    = bit_length - bits_in_msb
+//     total_bytes  = 1 + (remaining + 7) / 8   (when remaining > 0)
+//     LSB_byte     = MSB_byte + total_bytes - 1
+//     bits_in_lsb  = (remaining % 8) ? remaining % 8 : 8
+//     shift        = (8 - bits_in_lsb) % 8
+//
+//   Bytes are assembled in big-endian order: MSB_byte first (highest value),
+//   LSB_byte last (lowest value). After assembly, shift right by `shift`
+//   and mask to bit_length bits.
 //
 // ============================================================================
 
@@ -56,37 +70,45 @@ uint64_t CodecEngine::ExtractBits(
         return val & mask;
 
     } else {
-        // ── Motorola: start_bit = MSB (DBC reversed bit numbering) ─────
+        // ── Motorola: start_bit = MSB, big-endian byte order ─────────
         //
-        // DBC: bit 0 = byte0.MSB, bit 7 = byte0.LSB, bit 8 = byte1.MSB...
-        //   lsb_in_byte = 7 - (start_bit % 8)
-        //   Absolute LSB position = start_bit/8 * 8 + lsb_in_byte
-        //   Absolute MSB position = start_bit/8 * 8 + lsb_in_byte + bit_length - 1
-        //   First byte = start_bit / 8
-        //   Last byte  = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8
+        // MSB is at byte (start_bit/8), std bit (start_bit%8).
+        // Signal extends from std bit (start_bit%8) down to std 0 within
+        // the MSB byte, then fills subsequent bytes until bit_length is covered.
         //
-        uint32_t first_byte   = start_bit / 8;
-        uint32_t lsb_in_byte  = 7 - (start_bit % 8);
-        uint32_t last_byte    = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8;
+        uint32_t msb_byte    = start_bit / 8;
+        uint32_t msb_std_bit = start_bit % 8;
+        uint32_t bits_in_msb = msb_std_bit + 1;   // bits occupied in MSB byte
 
-        if (last_byte >= size) return 0;
+        if (msb_byte >= size) return 0;
 
-        // Assemble bytes ascending into big-endian uint64
+        // Single-byte: signal fits entirely in MSB byte
+        if (bits_in_msb >= bit_length) {
+            uint32_t bit_pos = msb_std_bit - bit_length + 1;
+            uint64_t val = data[msb_byte] >> bit_pos;
+            uint64_t mask = (bit_length == 64) ? ~uint64_t(0)
+                                               : ((uint64_t(1) << bit_length) - 1);
+            return val & mask;
+        }
+
+        // Multi-byte: signal spans MSB_byte .. LSB_byte
+        uint32_t remaining    = bit_length - bits_in_msb;
+        uint32_t total_bytes  = 1 + (remaining + 7) / 8;
+        uint32_t lsb_byte     = msb_byte + total_bytes - 1;
+        uint32_t bits_in_lsb  = (remaining % 8) ? (remaining % 8) : 8;
+        uint32_t shift        = (8 - bits_in_lsb) % 8;
+
+        if (lsb_byte >= size) return 0;
+
+        // Assemble bytes from MSB_byte to LSB_byte in big-endian order
         uint64_t val = 0;
-        uint32_t bytes_needed = last_byte - first_byte + 1;
-        if (bytes_needed > 8) bytes_needed = 8;
-        for (uint32_t i = 0; i < bytes_needed; ++i) {
-            uint32_t bi = first_byte + i;
+        uint32_t nbytes = (total_bytes > 8) ? 8 : total_bytes;
+        for (uint32_t i = 0; i < nbytes; ++i) {
+            uint32_t bi = msb_byte + i;
             if (bi < size)
                 val = (val << 8) | data[bi];
         }
 
-        // Shift right to align LSB to bit 0
-        // Single-byte: shift within the byte = start_bit % 8
-        // Multi-byte:  shift = first_byte*8 + lsb_in_byte
-        uint32_t shift = (first_byte == last_byte)
-            ? (start_bit % 8)
-            : (static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte);
         val >>= shift;
 
         uint64_t mask = (bit_length == 64) ? ~uint64_t(0)
@@ -139,56 +161,57 @@ void CodecEngine::PackBits(
         }
 
     } else {
-        // ── Motorola: start_bit = MSB (DBC reversed bit numbering) ─────
-        //   DBC: bit 0 = byte0.MSB, bit 7 = byte0.LSB, bit 8 = byte1.MSB...
-        //   lsb_in_byte = 7 - (start_bit % 8)
-        //   first_byte  = start_bit / 8
-        //   last_byte   = (start_bit + bit_length - 1) / 8
-        //   msb_in_byte = (start_bit + bit_length - 1) % 8
+        // ── Motorola: start_bit = MSB, big-endian byte order ─────────
         //
-        uint32_t first_byte   = start_bit / 8;
-        uint32_t lsb_in_byte  = 7 - (start_bit % 8);
-        uint32_t last_byte    = (first_byte * 8 + lsb_in_byte + bit_length - 1) / 8;
-        int32_t  msb_in_byte  = static_cast<int32_t>(start_bit + bit_length - 1) % 8;
+        // MSB is at byte (start_bit/8), std bit (start_bit%8).
+        // Signal extends from std bit (start_bit%8) down to std 0 within
+        // the MSB byte, then fills subsequent bytes until bit_length is covered.
+        //
+        uint32_t msb_byte    = start_bit / 8;
+        uint32_t msb_std_bit = start_bit % 8;
+        uint32_t bits_in_msb = msb_std_bit + 1;
 
-        if (last_byte >= size) return;
+        if (msb_byte >= size) return;
 
-        // Single-byte: place value at bit (start_bit % 8) to match ExtractBits
-        if (first_byte == last_byte) {
-            uint32_t bit_pos = start_bit % 8;
+        // Single-byte: signal fits entirely in MSB byte
+        if (bits_in_msb >= bit_length) {
+            uint32_t bit_pos = msb_std_bit - bit_length + 1;
             uint64_t m = (bit_length == 64) ? ~0ULL : ((1ULL << bit_length) - 1);
-            uint8_t  mask = static_cast<uint8_t>(m << bit_pos);
-            uint8_t  val  = static_cast<uint8_t>((raw_value & m) << bit_pos);
-            data[first_byte] = (data[first_byte] & ~mask) | val;
+            uint8_t  sig_mask = static_cast<uint8_t>(m << bit_pos);
+            uint8_t  val      = static_cast<uint8_t>((raw_value & m) << bit_pos);
+            data[msb_byte] = (data[msb_byte] & ~sig_mask) | val;
             return;
         }
 
-        uint32_t shift = static_cast<uint32_t>(first_byte) * 8 + lsb_in_byte;
+        // Multi-byte: signal spans MSB_byte .. LSB_byte
+        uint32_t remaining    = bit_length - bits_in_msb;
+        uint32_t total_bytes  = 1 + (remaining + 7) / 8;
+        uint32_t lsb_byte     = msb_byte + total_bytes - 1;
+        uint32_t bits_in_lsb  = (remaining % 8) ? (remaining % 8) : 8;
+        uint32_t shift        = (8 - bits_in_lsb) % 8;
 
-        for (uint32_t bi = last_byte; bi >= first_byte && bi < size; --bi) {
-            // This byte covers bits [(last_byte-bi)*8  .. (last_byte-bi)*8+7]
-            // in the assembled big-endian word. The signal starts at `shift`
-            // from the LSB of the assembled word.
-            // So byte bi receives signal bits:
-            //   sig_bit_start = (last_byte - bi) * 8 - shift
-            uint32_t byte_idx = last_byte - bi;
-            int32_t sig_bit_start = static_cast<int32_t>(byte_idx * 8) -
-                                     static_cast<int32_t>(shift);
-            uint8_t new_byte = 0;
-            if (sig_bit_start < static_cast<int32_t>(bit_length) && sig_bit_start > -8) {
-                uint32_t rshift = (sig_bit_start >= 0)
-                                      ? static_cast<uint32_t>(sig_bit_start) : 0u;
-                new_byte = static_cast<uint8_t>(raw_value >> rshift);
-                if (sig_bit_start < 0)
-                    new_byte = static_cast<uint8_t>(new_byte << (-sig_bit_start));
-            }
+        if (lsb_byte >= size) return;
+
+        uint64_t val_shifted = raw_value << shift;
+
+        // Iterate from LSB_byte (j=0, lowest value bits) up to MSB_byte
+        // (j=total_bytes-1, highest value bits).
+        // In big-endian layout: byte at index j from LSB has assembled
+        // value bits [j*8, j*8+7].
+        for (uint32_t j = 0; j < total_bytes; ++j) {
+            uint32_t bi = lsb_byte - j;
+            if (bi >= size) continue;
+
+            uint8_t new_byte = static_cast<uint8_t>(val_shifted >> (j * 8));
 
             uint8_t sig_mask = 0xFF;
-            if (bi == last_byte) {
-                sig_mask = static_cast<uint8_t>((1u << (msb_in_byte + 1)) - 1);
+            if (j == total_bytes - 1) {
+                // MSB byte: signal occupies std bits [0 .. msb_std_bit]
+                sig_mask = static_cast<uint8_t>((1u << (msb_std_bit + 1)) - 1);
             }
-            if (bi == first_byte && lsb_in_byte > 0) {
-                sig_mask &= static_cast<uint8_t>(0xFF << lsb_in_byte);
+            if (j == 0 && bits_in_lsb < 8) {
+                // LSB byte: signal occupies std bits [8-bits_in_lsb .. 7]
+                sig_mask &= static_cast<uint8_t>(((1u << bits_in_lsb) - 1) << (8 - bits_in_lsb));
             }
 
             data[bi] = (data[bi] & ~sig_mask) | (new_byte & sig_mask);
@@ -243,7 +266,17 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
     }
 
     if (has_pdu_routing) {
-        size_t offset = 0;
+        // Determine the byte offset where 3+1+len PDU data starts in the frame.
+        // All routing PDUs share the same start_position (inherited from container).
+        size_t pdu_base = 0;
+        for (const auto& pdu : frame.pdus) {
+            if (pdu.header_id != 0) {
+                pdu_base = pdu.start_position;
+                break;
+            }
+        }
+
+        size_t offset = pdu_base;
         while (offset + 4 <= size) {
             uint32_t chunk_header_id = (static_cast<uint32_t>(raw_bytes[offset]) << 16)
                                      | (static_cast<uint32_t>(raw_bytes[offset + 1]) << 8)
@@ -251,12 +284,13 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
             // byte[3] = PDU total length (or 0 as stop marker)
 
             size_t data_start = offset + 4;
-            size_t advance    = 4; // default minimum
+            size_t advance    = 4 + static_cast<size_t>(raw_bytes[offset + 3]); // use byte[3] length
 
             for (const auto& pdu : frame.pdus) {
                 if (pdu.header_id == 0) continue;
                 if (pdu.header_id != chunk_header_id) continue;
 
+                // Use PDU's declared byte_length for advance (more reliable than raw byte[3])
                 advance = 4 + pdu.byte_length; // header(4) + data(byte_length)
 
                 for (const auto& sig : pdu.signals) {
@@ -276,10 +310,29 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
                 break;
             }
 
-            if (advance == 0) advance = 4;
             offset += advance;
-            if (offset < advance) break; // overflow
+            if (advance <= 4) break; // stop marker (byte[3]==0) or zero-length PDU — end chain
         }
+
+        // Also decode signals from static PDUs (header_id == 0) that occupy
+        // fixed byte positions within the frame (e.g., alongside a CONTAINER-I-PDU).
+        for (const auto& pdu : frame.pdus) {
+            if (pdu.header_id != 0) continue;  // already decoded via routing
+            for (const auto& sig : pdu.signals) {
+                uint32_t effective_start = sig.start_bit + pdu.start_position * 8;
+                uint64_t raw = ExtractBits(raw_bytes, size,
+                    effective_start, sig.bit_length, sig.byte_order);
+                if (sig.is_signed && sig.bit_length < 64) {
+                    uint64_t sign_bit = 1ULL << (sig.bit_length - 1);
+                    if (raw & sign_bit) raw |= ~((1ULL << sig.bit_length) - 1);
+                }
+                double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
+                if (sig.max_value > sig.min_value)
+                    physical = std::clamp(physical, sig.min_value, sig.max_value);
+                results.push_back({sig.name, physical, sig.unit});
+            }
+        }
+
         return results;
     }
 
@@ -333,7 +386,16 @@ bool CodecEngine::EncodeFrame(
     }
 
     if (has_pdu_routing) {
-        size_t offset = 0;
+        // Determine the byte offset where 3+1+len PDU data starts in the frame.
+        size_t pdu_base = 0;
+        for (const auto& pdu : frame.pdus) {
+            if (pdu.header_id != 0) {
+                pdu_base = pdu.start_position;
+                break;
+            }
+        }
+
+        size_t offset = pdu_base;
         for (const auto& pdu : frame.pdus) {
             if (pdu.header_id == 0) continue;
 
@@ -370,6 +432,29 @@ bool CodecEngine::EncodeFrame(
             }
             offset += 4 + pdu.byte_length;
         }
+
+        // Also encode signals from static PDUs (header_id == 0)
+        // at their fixed byte positions within the frame.
+        for (const auto& pdu : frame.pdus) {
+            if (pdu.header_id != 0) continue;  // already encoded via routing
+            for (const auto& sig : pdu.signals) {
+                auto it = signals_to_encode.find(sig.name);
+                if (it == signals_to_encode.end()) continue;
+                double p = it->second;
+                if (sig.max_value > sig.min_value)
+                    p = std::clamp(p, sig.min_value, sig.max_value);
+                uint64_t r = PhysicalToRaw(p, sig.factor, sig.offset,
+                                           sig.is_signed, sig.bit_length);
+                if (!sig.is_signed && sig.bit_length < 64) {
+                    uint64_t m = (1ULL << sig.bit_length) - 1;
+                    if (r > m) r = m;
+                }
+                uint32_t eff = sig.start_bit + pdu.start_position * 8;
+                PackBits(out_bytes, max_size, eff,
+                         sig.bit_length, sig.byte_order, r);
+            }
+        }
+
         return true;
     }
 

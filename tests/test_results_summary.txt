@@ -1,0 +1,37 @@
+USDE Regression Test Results Summary
+=====================================
+Date: 2026-06-06
+
+Test Suite 1: Full Regression (DBC / ARXML / LDF)
+  Result: 100/100 ALL TESTS PASSED
+  Sections: 21 sections covering DBC, ARXML, LDF, cross-format, API robustness
+  Key highlights:
+    - DBC test vectors: 170/170 signal values correct
+    - DBC MUX vectors: 36/36 + 51/51 correct
+    - DBC signed signal vectors: 27/27 correct
+    - DBC CAN-FD round-trip: PASS
+    - Motorola multi-byte codec: PASS (all round-trips correct)
+    - ARXML CONTAINER-I-PDU: 3 passed
+    - ARXML NM-PDU & Mixed PDU: 3 passed
+    - ARXML PDU start_bit consistency (P3): 137 signals verified
+    - LDF round-trip: 9/9 correct
+    - LDF factor/offset: 3 passed
+    - Cross-format: 4 passed
+    - API robustness: 7 passed
+
+Test Suite 2: ARXML PDU Codec Regression (P0-P3)
+  Result: 13/13 ALL TESTS PASSED
+  Bugs verified fixed:
+    - P0: CONTAINER-I-PDU inner PDUs remain independent
+    - P1: pdu.start_position used in codec engine
+    - P2: Mixed PDU static PDUs not skipped
+    - P3: frame.signals start_bit frame-relative
+
+Test Suite 3: PDU Header Encode/Decode
+  Result: 4/4 ALL TESTS PASSED
+  Verified:
+    - PDU header_id round-trip encoding/decoding
+    - Wrong header_id routing (signals not decoded)
+    - Zero value round-trip
+
+Total: 117 tests, ALL PASSED

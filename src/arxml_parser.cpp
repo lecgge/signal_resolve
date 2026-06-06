@@ -188,8 +188,10 @@ bool LoadARXML(const std::filesystem::path& file_path,
         }
     }
 
-    // Resolve CONTAINER-I-PDU contained PDUs and inherit their mappings
-    std::unordered_set<std::string> contained_inner_pdus; // inner PDUs merged into a container
+    // ── 2b. Resolve CONTAINER-I-PDU — keep inner PDUs as independent entries ─────
+    // Each inner PDU retains its own header_id, byte_length, and signal mappings.
+    // The CONTAINER-I-PDU is a structural wrapper; it does NOT absorb inner PDU data.
+    // The cascade step (below) assigns pdu_to_frame and pdu_start_pos to inner PDUs.
     std::unordered_map<std::string, std::string> inner_to_container; // inner_pdu → container_pdu
     {
         size_t pos = 0;
@@ -200,12 +202,8 @@ bool LoadARXML(const std::filesystem::path& file_path,
             auto cname = ExtractTagContent(xml, "SHORT-NAME", open, close);
             if (cname.empty()) { pos = close; continue; }
 
-            // Already has direct mappings? Skip
-            bool has_mappings = false;
-            for (auto& m : mappings) { if (m.pdu_name == cname) { has_mappings = true; break; } }
-            if (has_mappings) { pos = close; continue; }
-
-            // Resolve contained PDUs via PDU-TRIGGERING refs
+            // Resolve all contained PDUs (even if the container has direct mappings).
+            // Inner PDUs become independent Pdu entries with their own header_id.
             size_t rpos = open;
             while (rpos < close) {
                 auto ref = FindOpenTag(xml, "CONTAINED-PDU-TRIGGERING-REF", rpos);
@@ -220,25 +218,8 @@ bool LoadARXML(const std::filesystem::path& file_path,
 
                 auto inner_it = ptrig_to_inner_pdu.find(trig_name);
                 if (inner_it != ptrig_to_inner_pdu.end()) {
-                    contained_inner_pdus.insert(inner_it->second);
                     inner_to_container[inner_it->second] = cname;
-                    // Clone mappings from inner PDU to container
-                    for (const auto& m : mappings) {
-                        if (m.pdu_name == inner_it->second) {
-                            MappingEntry clone = m;
-                            clone.pdu_name = cname;
-                            mappings.push_back(clone);
-                        }
-                    }
-                    // Inherit header_id / byte_length from inner PDU
-                    auto ci = pdu_defs.find(cname);
-                    auto ii = pdu_defs.find(inner_it->second);
-                    if (ci != pdu_defs.end() && ii != pdu_defs.end()) {
-                        if (ci->second.header_id == 0 && ii->second.header_id != 0) {
-                            ci->second.header_id = ii->second.header_id;
-                            ci->second.byte_length = ii->second.byte_length;
-                        }
-                    }
+                    // Inner PDU keeps its own identity — no cloning, no header_id inheritance.
                 }
                 rpos = ref_close_tag;
             }
@@ -294,15 +275,18 @@ bool LoadARXML(const std::filesystem::path& file_path,
         }
     }
 
-    // Cascade: inner PDUs of containers inherit the frame mapping
+    // Cascade: inner PDUs of containers inherit frame mapping and start_position
     for (auto& [trig_name, inner_pdu] : ptrig_to_inner_pdu) {
-        // Find the container that contains this inner PDU
         auto ic = inner_to_container.find(inner_pdu);
         if (ic == inner_to_container.end()) continue;
-        // Find the frame for the container
         auto p2f = pdu_to_frame.find(ic->second);
         if (p2f != pdu_to_frame.end()) {
             pdu_to_frame[inner_pdu] = p2f->second;
+            // Inherit start_position from container (byte offset in frame)
+            auto psp = pdu_start_pos.find(ic->second);
+            if (psp != pdu_start_pos.end()) {
+                pdu_start_pos[inner_pdu] = psp->second;
+            }
         }
     }
 
@@ -359,9 +343,6 @@ bool LoadARXML(const std::filesystem::path& file_path,
     for (auto& m : mappings) pdu_sigs[m.pdu_name].push_back(&m);
 
     for (auto& [pdu_name, sig_ptrs] : pdu_sigs) {
-        // Skip inner PDUs already merged into a CONTAINER-I-PDU
-        if (contained_inner_pdus.count(pdu_name)) continue;
-
         // Skip PDUs with no frame mapping (orphan I-SIGNAL-I-PDUs)
         auto ptf_it = pdu_to_frame.find(pdu_name);
         if (ptf_it == pdu_to_frame.end()) continue;
@@ -401,7 +382,7 @@ bool LoadARXML(const std::filesystem::path& file_path,
         for (auto* mp : sig_ptrs) {
             Signal sig;
             sig.name       = mp->signal_name;
-            sig.start_bit  = mp->start_pos;
+            sig.start_bit  = mp->start_pos;  // PDU-relative position (for PDU routing path)
             sig.byte_order = mp->byte_order;
             sig.factor     = 1.0;
             sig.offset     = 0.0;
@@ -409,8 +390,12 @@ bool LoadARXML(const std::filesystem::path& file_path,
             if (li != signal_lengths.end()) sig.bit_length = li->second;
 
             pdu.signals.push_back(sig);
-            // Also add to frame.signals for codec compatibility
-            fit->second.signals.push_back(sig);
+
+            // For frame.signals: adjust start_bit to frame-relative
+            // by adding PDU's start_position (bytes × 8 = bits)
+            Signal frame_sig = sig;
+            frame_sig.start_bit = sig.start_bit + pdu.start_position * 8;
+            fit->second.signals.push_back(frame_sig);
         }
 
         fit->second.pdus.push_back(std::move(pdu));

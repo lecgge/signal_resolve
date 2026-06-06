@@ -1,0 +1,50 @@
+============================================================
+  USDE ARXML PDU Codec Regression Test Suite
+============================================================
+  [PASS] ARXML load succeeds
+  Total frames: 54
+  NM-PDU frames: 8
+  Container frames: 33
+  Mixed frames: 2
+  Plain frames: 11
+
+-- Section 1: CONTAINER-I-PDU inner PDU independence (P0) --
+  Container frame 0x46 [CCP_ADCANFD_PDUGW_FrP31] DLC=64
+    PDU VCU_010ms_PDU00: header_id=256 byte_length=8 start_position=0 signals=18
+    PDU VCU_010ms_PDU19_SGWAD: header_id=281 byte_length=8 start_position=0 signals=12
+  [PASS] Multiple routing PDUs have distinct header_ids (P0)
+
+-- Section 2: NM-PDU encode/decode round-trip --
+  NM frame 0x151 [HADS_ADCANFD_FrP00] DLC=64
+  PDU: HADS_020ms_PDU00 header_id=22016 start_pos=0
+  Signal: isHADS_020ms_PDU00_CRC_0 start_bit=7 bit_length=8
+  [PASS] NM-PDU round-trip value=1.0 (isHADS_020ms_PDU00_CRC_0)
+
+-- Section 3: Mixed PDU (static + routing) (P2) --
+  Mixed frame 0x1BB [CCP_ADCANFD_PDUGW_FrP20] DLC=64
+  Routing PDUs: 1, Static PDUs: 1
+  Static PDU: TCM_025ms_PDU20 start_position=0
+  Static signal: isTCM_025ms_PDU20_CRC_0 start_bit=7 bit_length=8
+  [PASS] Static PDU signal decoded in mixed frame (P2)
+  [PASS] Static PDU encode/decode round-trip (P2)
+
+-- Section 4: frame.signals start_bit frame-relative (P3) --
+  [PASS] P3: frame.signals start_bit = pdu.signals.start_bit + start_position*8
+
+-- Section 5: CONTAINER-I-PDU encode/decode (P0+P1) --
+  [PASS] Container inner PDU 'VCU_010ms_PDU00' round-trip (isVCU_010ms_PDU00_RC_0)
+  [PASS] Container inner PDU 'VCU_010ms_PDU19_SGWAD' round-trip (isIMCU_010ms_PDU19_RC_1)
+
+-- Section 6: DBC regression --
+  [PASS] DBC load succeeds
+  [PASS] DBC regression: 30/30 signal values correct
+  [PASS] DBC round-trip CalendarDay=31
+  [PASS] DBC round-trip CalendarMonth=15
+
+-- Section 7: Non-routing frame decode --
+  Plain frame 0x4C0 [CCP_CNCAN_NM] DLC=8
+  [PASS] Plain frame decode works (isGW_NM_NOStoRMS_CN)
+
+============================================================
+  ALL 13 TESTS PASSED
+============================================================

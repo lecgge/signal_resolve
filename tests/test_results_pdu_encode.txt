@@ -1,0 +1,25 @@
+Frame 0x3F0 [CCP_PTEXTCANFD_FrP12] DLC=64
+  PDUs: 2
+    CCP_250ms_PDU12_PTEXT: header_id=65554 len=8 signals=11
+    CCP_250ms_PDU12: header_id=65554 len=8 signals=11
+
+=== Test PDU: CCP_250ms_PDU12_PTEXT header_id=65554 ===
+Signal: isOtsdAirTemCrVal_5 bit=63 len=8
+
+Encode isOtsdAirTemCrVal_5=1.0:
+  Raw (64B): 01 00 12 08 00 00 00 00 00 00 00 01...
+  Header: ID=65554 (expect 65554), Len=8 (expect 8)
+
+Decoded 11 signals (first 5):
+  isOtsdAirTemCrVal_5 = 1.0
+  isOtsdAirTemCrValMsk_5 = 0.0
+  isOtsdAirTemCrValV_5 = 0.0
+  isOtsdAirTemVDA_5 = 0.0
+  isCCP_250ms_PDU12_RC_5 = 0.0
+  --> Round-trip OK
+  --> Routing OK: wrong header_id -> no isOtsdAirTemCrVal_5 decoded
+  --> Zero value OK
+
+==================================================
+  All 4 tests PASSED
+==================================================
