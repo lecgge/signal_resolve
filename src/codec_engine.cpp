@@ -2,6 +2,17 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <functional>
+
+// Deterministic hash for signal_id
+static uint32_t hashSignalName(const std::string& name) {
+    uint32_t hash = 2166136261u;
+    for (char c : name) {
+        hash ^= static_cast<uint8_t>(c);
+        hash *= 16777619u;
+    }
+    return hash;
+}
 
 namespace usde {
 
@@ -305,7 +316,10 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
                     double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
                     if (sig.max_value > sig.min_value)
                         physical = std::clamp(physical, sig.min_value, sig.max_value);
-                    results.push_back({sig.name, physical, sig.unit});
+                    results.push_back({sig.name, physical, sig.unit,
+                        sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
+                        sig.factor, sig.offset, sig.min_value, sig.max_value,
+                        frame.id, hashSignalName(sig.name)});
                 }
                 break;
             }
@@ -329,7 +343,10 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
                 double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
                 if (sig.max_value > sig.min_value)
                     physical = std::clamp(physical, sig.min_value, sig.max_value);
-                results.push_back({sig.name, physical, sig.unit});
+                results.push_back({sig.name, physical, sig.unit,
+                    sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
+                    sig.factor, sig.offset, sig.min_value, sig.max_value,
+                    frame.id, hashSignalName(sig.name)});
             }
         }
 
@@ -361,7 +378,10 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
         double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
         if (sig.max_value > sig.min_value)
             physical = std::clamp(physical, sig.min_value, sig.max_value);
-        results.push_back({sig.name, physical, sig.unit});
+        results.push_back({sig.name, physical, sig.unit,
+            sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
+            sig.factor, sig.offset, sig.min_value, sig.max_value,
+            frame.id, hashSignalName(sig.name)});
     }
 
     return results;

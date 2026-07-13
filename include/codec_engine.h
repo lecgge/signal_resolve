@@ -12,6 +12,15 @@ struct DecodedSignal {
     std::string name;
     double      physical_value = 0.0;
     std::string unit;
+    uint32_t    start_bit   = 0;
+    uint32_t    bit_length  = 0;
+    uint8_t     byte_order  = 0;
+    double      factor      = 1.0;
+    double      offset      = 0.0;
+    double      min_value   = 0.0;
+    double      max_value   = 0.0;
+    uint32_t    message_id  = 0;
+    uint32_t    signal_id   = 0;
 };
 
 class CodecEngine {

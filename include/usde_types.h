@@ -28,6 +28,22 @@ struct Signal {
     bool     is_signed       = false;
 };
 
+// Extended decoded signal with full definition metadata (for JNI batch callback)
+struct DecodedSignalEx {
+    std::string name;
+    double      physical_value  = 0.0;
+    std::string unit;
+    uint32_t    start_bit       = 0;
+    uint32_t    bit_length      = 0;
+    ByteOrder   byte_order      = ByteOrder::INTEL;
+    double      factor          = 1.0;
+    double      offset          = 0.0;
+    double      min_value       = 0.0;
+    double      max_value       = 0.0;
+    uint32_t    message_id      = 0;
+    uint32_t    signal_id       = 0;
+};
+
 struct Pdu {
     std::string name;
     uint32_t    header_id      = 0;  // <HEADER-ID-SHORT-HEADER>

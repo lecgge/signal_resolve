@@ -18,9 +18,18 @@ typedef void* USDE_NetworkHandle;
 
 // ─── C-compatible decoded signal (fixed-size, JNA-friendly) ─────────────────
 typedef struct {
-    char   name[128];
-    double physical_value;
-    char   unit[32];
+    char     name[128];
+    double   physical_value;
+    char     unit[32];
+    uint32_t start_bit;
+    uint32_t bit_length;
+    uint32_t byte_order;    // 0=Intel, 1=Motorola
+    double   factor;
+    double   offset;
+    double   min_value;
+    double   max_value;
+    uint32_t message_id;
+    uint32_t signal_id;
 } C_DecodedSignal;
 
 // ─── Lifecycle ──────────────────────────────────────────────────────────────

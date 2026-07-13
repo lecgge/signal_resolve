@@ -137,6 +137,16 @@ USDE_API int USDE_DecodeFrame(
             decoded[static_cast<size_t>(i)].physical_value;
         CopyStr(out_signals[i].unit, sizeof(out_signals[i].unit),
                 decoded[static_cast<size_t>(i)].unit);
+        // Copy signal definition metadata
+        out_signals[i].start_bit   = decoded[static_cast<size_t>(i)].start_bit;
+        out_signals[i].bit_length  = decoded[static_cast<size_t>(i)].bit_length;
+        out_signals[i].byte_order  = static_cast<uint32_t>(decoded[static_cast<size_t>(i)].byte_order);
+        out_signals[i].factor      = decoded[static_cast<size_t>(i)].factor;
+        out_signals[i].offset      = decoded[static_cast<size_t>(i)].offset;
+        out_signals[i].min_value   = decoded[static_cast<size_t>(i)].min_value;
+        out_signals[i].max_value   = decoded[static_cast<size_t>(i)].max_value;
+        out_signals[i].message_id  = decoded[static_cast<size_t>(i)].message_id;
+        out_signals[i].signal_id   = decoded[static_cast<size_t>(i)].signal_id;
     }
     *out_count = n;
     return 1;
