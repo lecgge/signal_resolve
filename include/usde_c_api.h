@@ -38,6 +38,11 @@ typedef struct {
 // Returns NULL on allocation failure.
 USDE_API USDE_NetworkHandle USDE_CreateNetwork(void);
 
+// Deep-copy an already parsed network into a new independent handle.
+// Returns NULL for an invalid handle or allocation failure.
+USDE_API USDE_NetworkHandle USDE_CloneNetwork(USDE_NetworkHandle handle);
+
+
 // Parse a DBC file and populate the network. Returns 1 on success, 0 on failure.
 USDE_API int USDE_LoadDBC(USDE_NetworkHandle handle, const char* file_path);
 

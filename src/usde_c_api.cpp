@@ -49,6 +49,20 @@ USDE_API USDE_NetworkHandle USDE_CreateNetwork(void) {
     }
 }
 
+USDE_API USDE_NetworkHandle USDE_CloneNetwork(USDE_NetworkHandle handle) {
+    if (!handle) return nullptr;
+    auto* source = Cast(handle);
+    try {
+        std::lock_guard<std::recursive_mutex> lock(source->mtx);
+        auto* clone = new NetworkContext();
+        clone->cluster = source->cluster;
+        return static_cast<USDE_NetworkHandle>(clone);
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+
 USDE_API int USDE_LoadDBC(USDE_NetworkHandle handle, const char* file_path) {
     if (!handle || !file_path) return 0;
     auto* ctx = Cast(handle);
