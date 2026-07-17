@@ -236,6 +236,7 @@ void CodecEngine::PackBits(
 
 double CodecEngine::RawToPhysical(uint64_t raw, double factor, double offset,
                                    bool is_signed) {
+    // DBC 的 min/max 是物理范围元数据；Init/Invalid 原始码可能映射到范围外，解码时不能钳位。
     if (is_signed)
         return static_cast<double>(static_cast<int64_t>(raw)) * factor + offset;
     return static_cast<double>(raw) * factor + offset;
@@ -314,8 +315,6 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
                         if (raw & sign_bit) raw |= ~((1ULL << sig.bit_length) - 1);
                     }
                     double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
-                    if (sig.max_value > sig.min_value)
-                        physical = std::clamp(physical, sig.min_value, sig.max_value);
                     results.push_back({sig.name, physical, sig.unit,
                         sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
                         sig.factor, sig.offset, sig.min_value, sig.max_value,
@@ -341,8 +340,6 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
                     if (raw & sign_bit) raw |= ~((1ULL << sig.bit_length) - 1);
                 }
                 double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
-                if (sig.max_value > sig.min_value)
-                    physical = std::clamp(physical, sig.min_value, sig.max_value);
                 results.push_back({sig.name, physical, sig.unit,
                     sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
                     sig.factor, sig.offset, sig.min_value, sig.max_value,
@@ -376,8 +373,6 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
             if (raw & sign_bit) raw |= ~((1ULL << sig.bit_length) - 1);
         }
         double physical = RawToPhysical(raw, sig.factor, sig.offset, sig.is_signed);
-        if (sig.max_value > sig.min_value)
-            physical = std::clamp(physical, sig.min_value, sig.max_value);
         results.push_back({sig.name, physical, sig.unit,
             sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
             sig.factor, sig.offset, sig.min_value, sig.max_value,

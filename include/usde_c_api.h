@@ -63,13 +63,17 @@ USDE_API int USDE_GetFrameCount(USDE_NetworkHandle handle);
 
 // ─── Decode ─────────────────────────────────────────────────────────────────
 
+#define USDE_DECODE_BUFFER_TOO_SMALL 2
+
 // Decode a frame by its ID, writing results directly into the caller-provided
 // |out_signals| buffer (zero-allocation hot path).
 //
 // |max_count|  : capacity of the out_signals array.
-// |out_count|  : receives the actual number of signals written.
+// |out_count|  : receives the number written, or the required capacity when
+//                USDE_DECODE_BUFFER_TOO_SMALL is returned.
 //
 // Returns  1 on success (frame found and decoded).
+// Returns  2 when max_count is insufficient; no partial results are written.
 // Returns  0 if the frame ID was not found.
 // Returns -1 on invalid arguments.
 USDE_API int USDE_DecodeFrame(

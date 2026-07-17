@@ -141,8 +141,11 @@ USDE_API int USDE_DecodeFrame(
     auto decoded = usde::CodecEngine::DecodeFrame(
         it->second, raw_bytes, static_cast<size_t>(raw_size));
 
-    int n = static_cast<int>(decoded.size());
-    if (n > max_count) n = max_count;
+    const int n = static_cast<int>(decoded.size());
+    if (n > max_count) {
+        *out_count = n;
+        return USDE_DECODE_BUFFER_TOO_SMALL;
+    }
 
     for (int i = 0; i < n; ++i) {
         CopyStr(out_signals[i].name, sizeof(out_signals[i].name),
