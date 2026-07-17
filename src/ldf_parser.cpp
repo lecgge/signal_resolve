@@ -159,52 +159,22 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
 
             RawSignal rs;
             rs.size = static_cast<uint32_t>(std::stoul(std::string(tokens[0])));
-            if (tokens.size() >= 2)
-                rs.offset = std::stod(std::string(tokens[1]));
 
             sig_map[name] = rs;
         }
     }
 
-    // 3. Parse Signal_encoding_types { ... } (optional - factors/units)
-    {
-        auto block = ExtractBlock(lines, "Signal_encoding_types");
-        std::string current_enc;
-        for (auto& bl : block) {
-            std::string_view l = Trim(bl);
-            if (l.empty()) continue;
-
-            // Encoding type header: EncName {
-            if (l.find('{') != std::string_view::npos &&
-                l.find('=') == std::string_view::npos &&
-                l.find("logical_value") == std::string_view::npos &&
-                l.find("physical_value") == std::string_view::npos) {
-                auto brace = l.find('{');
-                current_enc = std::string(Trim(l.substr(0, brace)));
-                continue;
-            }
-
-            // physical_value, factor, offset, min, max, "unit" ;
-            if (l.find("physical_value") != std::string_view::npos) {
-                auto eq = l.find('=');
-                if (eq == std::string_view::npos) continue;
-                auto semi = l.find(';', eq);
-                std::string_view val = l.substr(eq + 1,
-                    (semi == std::string_view::npos ? l.size() : semi) - eq - 1);
-                auto toks = SplitTrimmed(val, ',');
-                // Find signals that use this encoding via Signal_representation
-                // For now, just store the encoding data for later matching
-                (void)toks; // Will be used below
-            }
-        }
-    }
-
-    // 3b. Parse Signal_representation { ... } to map encodings to signals
-    //     Format: EncodingName: Signal1, Signal2, ... ;
-    // Then use encoding data to fill factor/offset/unit.
+    // 3. 解析信号编码，再通过 Signal_representation 关联到信号。
     {
         auto enc_block = ExtractBlock(lines, "Signal_encoding_types");
-        std::unordered_map<std::string, std::vector<std::string>> enc_data;
+        struct Encoding {
+            double factor = 1.0;
+            double offset = 0.0;
+            double min_val = 0.0;
+            double max_val = 0.0;
+            std::string unit;
+        };
+        std::unordered_map<std::string, Encoding> enc_data;
         std::string current_enc;
         for (auto& bl : enc_block) {
             std::string_view l = Trim(bl);
@@ -218,21 +188,29 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
                 continue;
             }
             if (l.find("physical_value") != std::string_view::npos) {
-                auto eq = l.find('=');
-                if (eq == std::string_view::npos) continue;
-                auto semi = l.find(';', eq);
-                std::string_view val = l.substr(eq + 1,
-                    (semi == std::string_view::npos ? l.size() : semi) - eq - 1);
+                auto comma = l.find(',');
+                if (current_enc.empty() || comma == std::string_view::npos) continue;
+                auto semi = l.find(';', comma);
+                std::string_view val = l.substr(comma + 1,
+                    (semi == std::string_view::npos ? l.size() : semi) - comma - 1);
                 auto toks = SplitTrimmed(val, ',');
-                if (toks.size() >= 4) {
-                    enc_data[current_enc] = {
-                        std::string(toks[0]), // factor
-                        std::string(toks[1]), // offset
-                        std::string(toks[2]), // min
-                        std::string(toks[3]), // max
-                        toks.size() >= 5 ? std::string(toks[4]) : ""
-                    };
+                if (toks.size() < 5) continue;
+
+                const double raw_min = std::stod(std::string(toks[0]));
+                const double raw_max = std::stod(std::string(toks[1]));
+                Encoding encoding;
+                encoding.factor = std::stod(std::string(toks[2]));
+                encoding.offset = std::stod(std::string(toks[3]));
+                encoding.min_val = raw_min * encoding.factor + encoding.offset;
+                encoding.max_val = raw_max * encoding.factor + encoding.offset;
+                encoding.unit = std::string(toks[4]);
+                if (!encoding.unit.empty() && encoding.unit.front() == '"') {
+                    encoding.unit.erase(0, 1);
                 }
+                if (!encoding.unit.empty() && encoding.unit.back() == '"') {
+                    encoding.unit.pop_back();
+                }
+                enc_data[current_enc] = std::move(encoding);
             }
         }
 
@@ -243,7 +221,7 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
             auto colon = l.find(':');
             if (colon == std::string_view::npos) continue;
             auto semi = l.find(';');
-            std::string enc_name(l.substr(0, colon));
+            std::string enc_name(Trim(l.substr(0, colon)));
             auto rest = l.substr(colon + 1,
                 (semi == std::string_view::npos ? l.size() : semi) - colon - 1);
             auto sig_names = SplitTrimmed(rest, ',');
@@ -254,24 +232,18 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
             for (auto& sn : sig_names) {
                 auto si = sig_map.find(std::string(sn));
                 if (si != sig_map.end()) {
-                    si->second.factor = std::stod(it->second[0]);
-                    si->second.offset = std::stod(it->second[1]);
-                    si->second.min_val = std::stod(it->second[2]);
-                    si->second.max_val = std::stod(it->second[3]);
-                    if (it->second.size() > 4) {
-                        std::string u = it->second[4];
-                        if (!u.empty() && u.front() == '"') u.erase(0, 1);
-                        if (!u.empty() && u.back() == '"') u.pop_back();
-                        si->second.unit = u;
-                    }
+                    si->second.factor = it->second.factor;
+                    si->second.offset = it->second.offset;
+                    si->second.min_val = it->second.min_val;
+                    si->second.max_val = it->second.max_val;
+                    si->second.unit = it->second.unit;
                 }
             }
         }
     }
-
     // 4. Parse Frames { ... }
     //    Format: FrameName: ID, Publisher, Size {
-    //      SignalName, ByteOffset ;
+    //      SignalName, BitOffset ;
     //      ...
     //    }
     {
@@ -339,7 +311,7 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
                 continue;
             }
 
-            // Signal reference: SignalName, ByteOffset ;
+            // Signal reference: SignalName, BitOffset ;
             if (has_frame && l.find(',') != std::string_view::npos &&
                 l.find(';') != std::string_view::npos) {
                 auto semi = l.find(';');
@@ -351,9 +323,9 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
                         Signal sig;
                         sig.name       = std::string(tokens[0]);
                         sig.bit_length = it->second.size;
-                        uint32_t byte_off = static_cast<uint32_t>(
+                        uint32_t bit_off = static_cast<uint32_t>(
                             std::stoul(std::string(tokens[1])));
-                        sig.start_bit  = byte_off * 8;
+                        sig.start_bit  = bit_off;
                         sig.byte_order = ByteOrder::INTEL;
                         sig.factor     = it->second.factor;
                         sig.offset     = it->second.offset;
