@@ -1,0 +1,19 @@
+* text=auto
+
+*.cpp text eol=lf
+*.h text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+*.dbc text eol=lf
+*.ldf text eol=lf
+*.arxml text eol=lf
+
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+*.pyd binary
+
+# Preserve exact formatting in upstream database fixtures.
+test_data/** -whitespace

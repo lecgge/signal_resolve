@@ -21,10 +21,16 @@ struct DecodedSignal {
     double      max_value   = 0.0;
     uint32_t    message_id  = 0;
     uint32_t    signal_id   = 0;
+    uint64_t    signal_id64 = 0;
+    uint64_t    raw_bits    = 0;
 };
 
 class CodecEngine {
 public:
+    /** Stable FNV-1a ID over the complete UTF-8 signal-name bytes. */
+    static uint32_t SignalId(const std::string& name);
+    static uint64_t SignalId64(const std::string& name);
+
     // Decode: raw bytes -> all valid physical values (with MUX routing)
     static std::vector<DecodedSignal> DecodeFrame(
         const Frame&    frame,

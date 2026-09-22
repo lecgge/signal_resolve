@@ -12,8 +12,16 @@ enum class ByteOrder : uint8_t {
     MOTOROLA = 1   // Big-Endian
 };
 
+struct ValueState {
+    // Canonical base-10 integer text. Keeping text avoids losing uint64 values
+    // before they reach JavaScript or an Influx integer field.
+    std::string raw_value_text;
+    std::string label;
+};
+
 struct Signal {
     std::string name;
+    std::string description;
     uint32_t start_bit   = 0;
     uint32_t bit_length  = 0;
     ByteOrder byte_order = ByteOrder::INTEL;
@@ -26,6 +34,7 @@ struct Signal {
     uint32_t mux_value       = 0;
     bool     is_mux_decoder  = false;
     bool     is_signed       = false;
+    std::vector<ValueState> value_states;
 };
 
 // Extended decoded signal with full definition metadata (for JNI batch callback)
@@ -56,6 +65,7 @@ struct Frame {
     uint32_t id   = 0;
     uint32_t dlc  = 0;
     std::string name;
+    std::string transmitter;
     std::vector<Signal> signals;   // codec uses this (from DBC/LDF or flattened PDU)
     std::vector<Pdu>    pdus;      // PDU hierarchy (ARXML only)
 };
@@ -73,6 +83,7 @@ struct NetworkCluster {
     std::string bus_type;
     uint32_t    baudrate = 0;
     bool        can_fd   = false;
+    std::vector<std::string> nodes;                       // DBC BU_ order
     std::unordered_map<uint32_t, Frame> frames;           // Key: Frame ID
     std::unordered_map<std::string, Cluster> clusters;    // ARXML only
 };

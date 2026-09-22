@@ -32,6 +32,68 @@ typedef struct {
     uint32_t signal_id;
 } C_DecodedSignal;
 
+// Additive decode ABI carrying the full-name 64-bit identity without changing
+// the layout or allocation contract of C_DecodedSignal/USDE_DecodeFrame.
+typedef struct {
+    C_DecodedSignal signal;
+    uint64_t signal_id64;
+} C_DecodedSignalV2;
+
+
+typedef struct {
+    uint64_t signal_id;
+    uint64_t raw_bits;
+} C_RawDecodedSignal;
+
+// ─── Length-aware database metadata (caller-owned buffers) ────────────────
+typedef struct {
+    int node_count;
+    int signal_count;
+} C_MetadataCounts;
+
+typedef struct {
+    uint32_t message_id;
+    uint32_t start_bit;
+    uint32_t bit_length;
+    uint32_t byte_order;
+    double factor;
+    double offset;
+    double min_value;
+    double max_value;
+    int value_state_count;
+    int sender_node_length;  // UTF-8 bytes, excluding NUL
+    int message_name_length;
+    int signal_name_length;
+    int unit_length;
+    uint32_t signal_id;       // FNV-1a over the complete UTF-8 signal name
+} C_SignalMetadata;
+
+typedef struct {
+    uint64_t signal_id;
+    int description_length;
+    uint32_t flags;
+} C_SignalMetadataV2;
+
+#define USDE_SIGNAL_FLAG_MUX_SELECTOR 1U
+#define USDE_SIGNAL_FLAG_MULTIPLEXED 2U
+#define USDE_SIGNAL_FLAG_SIGNED 4U
+
+typedef struct {
+    double physical_value;
+    int sort_order;
+    int raw_value_text_length; // ASCII bytes, excluding NUL
+    int state_label_length;    // UTF-8 bytes, excluding NUL
+} C_ValueStateMetadata;
+
+#define USDE_METADATA_SIGNAL_SENDER_NODE 0
+#define USDE_METADATA_SIGNAL_MESSAGE_NAME 1
+#define USDE_METADATA_SIGNAL_SIGNAL_NAME 2
+#define USDE_METADATA_SIGNAL_UNIT 3
+#define USDE_METADATA_SIGNAL_DESCRIPTION 4
+
+#define USDE_METADATA_VALUE_RAW_TEXT 0
+#define USDE_METADATA_VALUE_STATE_LABEL 1
+
 // ─── Lifecycle ──────────────────────────────────────────────────────────────
 
 // Create an empty network handle (for subsequent Load calls).
@@ -61,6 +123,58 @@ USDE_API void USDE_DestroyNetwork(USDE_NetworkHandle handle);
 // Get the number of frames in the network. Returns -1 if handle is invalid.
 USDE_API int USDE_GetFrameCount(USDE_NetworkHandle handle);
 
+// Metadata indices are deterministic: frames sort by message ID and signals
+// keep their source definition order. All functions are synchronous.
+//
+// Copy functions never truncate. They set |required_capacity| to UTF-8 byte
+// length + one NUL byte. Passing NULL/0 queries the required capacity.
+// Return 1 when copied, 0 for insufficient capacity or an unavailable index,
+// and -1 for invalid arguments.
+USDE_API int USDE_GetMetadataCounts(
+    USDE_NetworkHandle handle,
+    C_MetadataCounts* out_counts);
+
+USDE_API int USDE_CopyMetadataNode(
+    USDE_NetworkHandle handle,
+    int node_index,
+    char* destination,
+    int capacity,
+    int* required_capacity);
+
+USDE_API int USDE_GetSignalMetadata(
+    USDE_NetworkHandle handle,
+    int signal_index,
+    C_SignalMetadata* out_metadata);
+
+USDE_API int USDE_GetSignalMetadataV2(
+    USDE_NetworkHandle handle,
+    int signal_index,
+    C_SignalMetadataV2* out_metadata);
+
+USDE_API int USDE_CopySignalMetadataString(
+    USDE_NetworkHandle handle,
+    int signal_index,
+    int field,
+    char* destination,
+    int capacity,
+    int* required_capacity);
+
+USDE_API int USDE_GetValueStateMetadata(
+    USDE_NetworkHandle handle,
+    int signal_index,
+    int state_index,
+    C_ValueStateMetadata* out_metadata);
+
+USDE_API int USDE_CopyValueStateMetadataString(
+    USDE_NetworkHandle handle,
+    int signal_index,
+    int state_index,
+    int field,
+    char* destination,
+    int capacity,
+    int* required_capacity);
+
+
 // ─── Decode ─────────────────────────────────────────────────────────────────
 
 #define USDE_DECODE_BUFFER_TOO_SMALL 2
@@ -82,6 +196,24 @@ USDE_API int USDE_DecodeFrame(
     const uint8_t*       raw_bytes,
     int                  raw_size,
     C_DecodedSignal*     out_signals,
+    int                  max_count,
+    int*                 out_count);
+
+USDE_API int USDE_DecodeFrameV2(
+    USDE_NetworkHandle   handle,
+    uint32_t             frame_id,
+    const uint8_t*       raw_bytes,
+    int                  raw_size,
+    C_DecodedSignalV2*   out_signals,
+    int                  max_count,
+    int*                 out_count);
+
+USDE_API int USDE_DecodeFrameRaw(
+    USDE_NetworkHandle   handle,
+    uint32_t             frame_id,
+    const uint8_t*       raw_bytes,
+    int                  raw_size,
+    C_RawDecodedSignal*  out_signals,
     int                  max_count,
     int*                 out_count);
 

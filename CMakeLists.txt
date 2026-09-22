@@ -39,11 +39,23 @@ add_library(usde SHARED
     ${USDE_CORE_SOURCES}
 )
 target_include_directories(usde PUBLIC ${USDE_INCLUDE_DIR})
+
+find_package(Iconv REQUIRED)
+target_link_libraries(usde PRIVATE Iconv::Iconv)
+target_link_libraries(usde_demo PRIVATE Iconv::Iconv)
 set_target_properties(usde PROPERTIES
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
     PUBLIC_HEADER "${USDE_PUBLIC_HEADERS}"
 )
+if(NOT MSVC)
+    # Let the artifact resolve dependencies (Vector_BLF) from its own directory,
+    # so it can be loaded from any location (including jar-embedded extraction).
+    set_target_properties(usde PROPERTIES
+        INSTALL_RPATH "$ORIGIN"
+        BUILD_WITH_INSTALL_RPATH ON
+    )
+endif()
 
 if(MSVC)
     target_compile_options(usde PRIVATE /utf-8 /W4)
@@ -74,6 +86,7 @@ if(pybind11_FOUND)
         ${USDE_CORE_SOURCES}
     )
     target_include_directories(usde_python PRIVATE ${USDE_INCLUDE_DIR})
+    target_link_libraries(usde_python PRIVATE Iconv::Iconv)
     if(MSVC)
         target_compile_options(usde_python PRIVATE /utf-8)
     endif()

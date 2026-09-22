@@ -38,3 +38,9 @@ Thumbs.db
 
 __pycache__/
 build_py*/
+*.pyd
+
+# Generated diagnostics and regression reports
+err.txt
+out.txt
+tests/test_results*.txt

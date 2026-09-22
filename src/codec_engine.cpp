@@ -4,8 +4,10 @@
 #include <cstring>
 #include <functional>
 
-// Deterministic hash for signal_id
-static uint32_t hashSignalName(const std::string& name) {
+
+namespace usde {
+
+uint32_t CodecEngine::SignalId(const std::string& name) {
     uint32_t hash = 2166136261u;
     for (char c : name) {
         hash ^= static_cast<uint8_t>(c);
@@ -14,7 +16,14 @@ static uint32_t hashSignalName(const std::string& name) {
     return hash;
 }
 
-namespace usde {
+uint64_t CodecEngine::SignalId64(const std::string& name) {
+    uint64_t hash = UINT64_C(14695981039346656037);
+    for (char c : name) {
+        hash ^= static_cast<uint8_t>(c);
+        hash *= UINT64_C(1099511628211);
+    }
+    return hash;
+}
 
 // ============================================================================
 // Bit-Stream Extractor / Packer
@@ -318,7 +327,7 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
                     results.push_back({sig.name, physical, sig.unit,
                         sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
                         sig.factor, sig.offset, sig.min_value, sig.max_value,
-                        frame.id, hashSignalName(sig.name)});
+                        frame.id, SignalId(sig.name), SignalId64(sig.name), raw});
                 }
                 break;
             }
@@ -343,7 +352,7 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
                 results.push_back({sig.name, physical, sig.unit,
                     sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
                     sig.factor, sig.offset, sig.min_value, sig.max_value,
-                    frame.id, hashSignalName(sig.name)});
+                    frame.id, SignalId(sig.name), SignalId64(sig.name), raw});
             }
         }
 
@@ -376,7 +385,7 @@ std::vector<DecodedSignal> CodecEngine::DecodeFrame(
         results.push_back({sig.name, physical, sig.unit,
             sig.start_bit, sig.bit_length, static_cast<uint8_t>(sig.byte_order),
             sig.factor, sig.offset, sig.min_value, sig.max_value,
-            frame.id, hashSignalName(sig.name)});
+            frame.id, SignalId(sig.name), SignalId64(sig.name), raw});
     }
 
     return results;
