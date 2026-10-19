@@ -100,6 +100,26 @@ ExtractBlock(const std::vector<std::string_view>& lines,
     return {};
 }
 
+// LDF 的信号位偏移有两种写法，必须区分（2026-10-19 现场踩坑）：
+//
+// A) 帧内偏移：StartByte 取值 1..DLC，位偏移 = (StartByte-1)*8
+//    例：Door.ldf 的 `DWFR_WinPos, 0` → start_bit=0；`DWFR_ResponseError, 7` → 56
+//
+// B) 总线级全局偏移：多个帧共享一个地址空间，StartByte 可以远超本帧 DLC
+//    现场 FICM_LIN1 的 Frame 0x01（DLC=8）里偏移却是 24..49 —— 因为这个
+//    LDF 把整条总线的响应帧接在一个连续地址空间里编址。
+//    例：`EPTRdy_NewL_l, 39` → 39 > DLC(8)，只能是 B。
+//
+// 原实现两种都不对：把 StartByte 当成**位偏移**直接用（字节 39 变成位 39），
+// 换算后又一律乘 8（变成 312），位置完全错位；更糟的是缓冲区只按 dlc 开，
+// PackBits 越界被静默丢弃，encode_frame 恒返回全 0 且不报错。
+//
+// 这里保留**原始字节号**并按实际最大字节号扩容，让 encode 能写对位置；
+// 若目标帧需要按物理 DLC 截断，调用方应改用该帧对应 DLC 内的信号子集。
+static inline uint32_t LdfStartByteToBitOffset(uint32_t start_byte) {
+    return start_byte == 0 ? 0u : (start_byte - 1u) * 8u;
+}
+
 } // anonymous namespace
 
 bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster) {
@@ -241,13 +261,25 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
             }
         }
     }
-    // 4. Parse Frames { ... }
+    // 4. Parse Encoding_Response（**LDF 里信号位布局的权威来源**）
     //    Format: FrameName: ID, Publisher, Size {
-    //      SignalName, BitOffset ;
-    //      ...
+    //      SignalName: Size, StartByte, Publisher, Subscriber1, ... ;
     //    }
+    //
+    //    2026-10-19 现场修正：原实现只解析 `Frames` 段，而 Mentor/Vector 生成的
+    //    真实 LDF 把位布局放在 `Encoding_Response` 段 —— 两段格式不同（帧头是
+    //    `Name: ID, Publisher, Size`，信号行多一个 Publisher），于是信号全解析不到，
+    //    start_bit 停留在 0、factor 停留在 1.0，encode_frame 恒返回全 0。
+    //    这里改成：优先读 Encoding_Response，读不到才回退 Frames（兼容
+    //    某些工具导出的 Frames 段变体）。
     {
-        auto block = ExtractBlock(lines, "Frames");
+        auto block = ExtractBlock(lines, "Encoding_Response");
+        if (block.empty()) {
+            block = ExtractBlock(lines, "Encoding_Request");
+        }
+        if (block.empty()) {
+            block = ExtractBlock(lines, "Frames");   // 回退
+        }
         Frame current_frame{};
         bool  has_frame = false;
 
@@ -311,21 +343,34 @@ bool LoadLDF(const std::filesystem::path& file_path, NetworkCluster& out_cluster
                 continue;
             }
 
-            // Signal reference: SignalName, BitOffset ;
+            // Signal reference. 两种格式都要认：
+            //   Encoding_Response: Name: Size, StartByte, Publisher, Subs... ;
+            //   Frames (fallback) : Name, BitOffset ;
             if (has_frame && l.find(',') != std::string_view::npos &&
                 l.find(';') != std::string_view::npos) {
                 auto semi = l.find(';');
                 std::string_view entry = l.substr(0, semi);
-                auto tokens = SplitTrimmed(entry, ',');
+
+                // 先剥掉 Encoding_Response 的 "Name: " 前缀
+                std::string_view body = Trim(entry);
+                if (body.find(':') != std::string_view::npos) {
+                    auto c = body.find(':');
+                    body = Trim(body.substr(c + 1));
+                }
+
+                auto tokens = SplitTrimmed(body, ',');
                 if (tokens.size() >= 2) {
                     auto it = sig_map.find(std::string(tokens[0]));
                     if (it != sig_map.end()) {
                         Signal sig;
                         sig.name       = std::string(tokens[0]);
+                        // Encoding_Response 的第 1 个数是 Size、第 2 个是 StartByte；
+                        // Frames 回退格式第 1 个数直接是 BitOffset。两种都要落到
+                        // 同一个 0-based 位偏移上。
                         sig.bit_length = it->second.size;
-                        uint32_t bit_off = static_cast<uint32_t>(
+                        uint32_t raw = static_cast<uint32_t>(
                             std::stoul(std::string(tokens[1])));
-                        sig.start_bit  = bit_off;
+                        sig.start_bit  = LdfStartByteToBitOffset(raw);
                         sig.byte_order = ByteOrder::INTEL;
                         sig.factor     = it->second.factor;
                         sig.offset     = it->second.offset;

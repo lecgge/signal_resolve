@@ -127,8 +127,22 @@ public:
 
         size_t buf_size = f->dlc;
         if (buf_size == 0) buf_size = 8;
-        std::vector<uint8_t> buf(buf_size, 0);
 
+        // 2026-10-19 现场修正：缓冲区**不能只按 dlc 开**。
+        // LIN 的 `Encoding_Response` 把整条总线的响应帧接在一个大帧里，
+        // 现场 FICM_LIN1 的 Frame 0x01 dlc=8，但信号 start_bit 实测到 376
+        // （LDF 原文 StartByte=48）—— 按 dlc=8 开 8 字节缓冲，
+        // PackBits 的越界检查会把每一次写入都丢掉，encode_frame 恒返回全 0，
+        // 而且**不报任何错**（最坏的一种失败：静默发空帧）。
+        // 所以按「本帧信号实际用到的最大位偏移 + 信号长度」扩容。
+        for (const auto& sig : f->signals) {
+            if (!values.count(sig.name)) continue;
+            size_t need = (static_cast<size_t>(sig.start_bit) +
+                           sig.bit_length + 7) / 8;
+            if (need > buf_size) buf_size = need;
+        }
+
+        std::vector<uint8_t> buf(buf_size, 0);
         usde::CodecEngine::EncodeFrame(*f, values,
                                        buf.data(), buf.size());
         return buf;

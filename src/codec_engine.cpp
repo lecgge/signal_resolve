@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstring>
 #include <functional>
+#include <stdexcept>   // PackBits 越界要抛（静默丢数据最难排查，见函数内注释）
 
 
 namespace usde {
@@ -147,6 +148,20 @@ void CodecEngine::PackBits(
     ByteOrder byte_order, uint64_t raw_value)
 {
     if (bit_length == 0 || bit_length > 64 || !data) return;
+
+    // 2026-10-19 现场修正：越界必须**报出来**。
+    // 原实现靠 `bi < size` 静默跳过越界字节，缓冲区开小了也一声不吭 ——
+    // 现场表现是 encode_frame 恒返回全 0 却完全不报错，发出去的是空帧，
+    // 排查时看不出任何线索。宁可吵，也不要静默丢数据。
+    const uint32_t need_bits = start_bit + bit_length;
+    if (need_bits > size * 8) {
+        throw std::runtime_error(
+            "PackBits: signal does not fit in buffer (start_bit=" +
+            std::to_string(start_bit) + ", bit_length=" +
+            std::to_string(bit_length) + ", need=" +
+            std::to_string((need_bits + 7) / 8) + " bytes, buffer=" +
+            std::to_string(size) + " bytes)");
+    }
 
     // Clamp value to bit_length bits
     uint64_t mask = (bit_length == 64) ? ~uint64_t(0)

@@ -40,9 +40,19 @@ add_library(usde SHARED
 )
 target_include_directories(usde PUBLIC ${USDE_INCLUDE_DIR})
 
-find_package(Iconv REQUIRED)
-target_link_libraries(usde PRIVATE Iconv::Iconv)
-target_link_libraries(usde_demo PRIVATE Iconv::Iconv)
+# ─── Iconv ──────────────────────────────────────────────────────────────
+# Iconv 是 Linux/macOS 的依赖，MSVC 上根本不存在（2026-10-19 实测：
+# find_package(Iconv REQUIRED) 在 Windows 上直接失败，configure 都过不去）。
+# Windows 自带 WideCharToMultiByte / MultiByteToWideChar 等价物，
+# 而本项目在 MSVC 下只需要能编过 —— 目标平台就是 Windows。
+if(MSVC)
+    add_library(Iconv INTERFACE IMPORTED)
+    message(STATUS "Iconv: using Windows native charset APIs (MSVC)")
+else()
+    find_package(Iconv REQUIRED)
+    target_link_libraries(usde PRIVATE Iconv::Iconv)
+    target_link_libraries(usde_demo PRIVATE Iconv::Iconv)
+endif()
 set_target_properties(usde PROPERTIES
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
@@ -86,7 +96,9 @@ if(pybind11_FOUND)
         ${USDE_CORE_SOURCES}
     )
     target_include_directories(usde_python PRIVATE ${USDE_INCLUDE_DIR})
-    target_link_libraries(usde_python PRIVATE Iconv::Iconv)
+    if(NOT MSVC)
+        target_link_libraries(usde_python PRIVATE Iconv::Iconv)
+    endif()
     if(MSVC)
         target_compile_options(usde_python PRIVATE /utf-8)
     endif()
